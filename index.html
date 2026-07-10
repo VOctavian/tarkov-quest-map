@@ -248,6 +248,9 @@
   <button class="topbtn" id="btn-active-filter" title="Показать только задания, доступные прямо сейчас (все требуемые задания уже выполнены)">Активные</button>
   <button class="topbtn" id="btn-reset-view">Сбросить вид</button>
   <button class="topbtn" id="btn-reset-progress">Сбросить прогресс</button>
+  <button class="topbtn" id="btn-export" title="Скачать прогресс в файл">Экспорт</button>
+  <button class="topbtn" id="btn-import" title="Загрузить прогресс из файла">Импорт</button>
+  <input type="file" id="import-file" accept="application/json" style="display:none">
   <span id="status"></span>
   <div id="legend">
     <div class="legend-item"><span class="dot fir"></span> найдено в рейде</div>
@@ -1064,11 +1067,68 @@
       saveJSON(LS_VIEW, state.view);
     });
     document.getElementById("btn-reset-progress").addEventListener("click", function(){
-      if(!confirm("Сбросить весь прогресс (выполненные задания и счётчики предметов)?")) return;
-      state.completed = {}; state.itemHave = {};
+      if(!confirm("Сбросить весь прогресс (выполненные задания, подзадачи и счётчики предметов)?")) return;
+      state.completed = {}; state.itemHave = {}; state.objectiveDone = {};
       saveJSON(LS_COMPLETED, state.completed);
       saveJSON(LS_ITEMS, state.itemHave);
+      saveJSON(LS_OBJ_DONE, state.objectiveDone);
       location.reload();
+    });
+
+    setupExportImport();
+  }
+
+  function setupExportImport(){
+    document.getElementById("btn-export").addEventListener("click", function(){
+      var payload = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        completed: state.completed,
+        itemHave: state.itemHave,
+        objectiveDone: state.objectiveDone,
+        traderVisible: state.traderVisible
+      };
+      var blob = new Blob([JSON.stringify(payload, null, 2)], {type: "application/json"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      var stamp = payload.exportedAt.slice(0, 10);
+      a.download = "tarkov-progress-" + stamp + ".json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    var importInput = document.getElementById("import-file");
+    document.getElementById("btn-import").addEventListener("click", function(){
+      importInput.value = "";
+      importInput.click();
+    });
+    importInput.addEventListener("change", function(){
+      var file = importInput.files && importInput.files[0];
+      if(!file) return;
+      var reader = new FileReader();
+      reader.onload = function(){
+        var data;
+        try{
+          data = JSON.parse(reader.result);
+        }catch(e){
+          alert("Не удалось прочитать файл: это не корректный JSON.");
+          return;
+        }
+        if(!data || typeof data !== "object"){
+          alert("Файл не похож на экспорт прогресса этого приложения.");
+          return;
+        }
+        if(!confirm("Импортировать прогресс из файла? Текущий прогресс в этом браузере будет перезаписан.")) return;
+        saveJSON(LS_COMPLETED, data.completed || {});
+        saveJSON(LS_ITEMS, data.itemHave || {});
+        saveJSON(LS_OBJ_DONE, data.objectiveDone || {});
+        if(data.traderVisible) saveJSON(LS_TRADERS, data.traderVisible);
+        location.reload();
+      };
+      reader.readAsText(file);
     });
   }
 
