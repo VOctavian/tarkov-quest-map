@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escape from Tarkov — Карта заданий</title>
+<style>
+  :root{
+    --bg:#0e1210;
+    --panel:#171c19;
+    --panel-2:#1f2622;
+    --border:#2c3630;
+    --text:#e7ece8;
+    --text-dim:#9aa89f;
+    --accent:#c7a15a;
+    --accent-2:#5aa17a;
+    --danger:#b1533f;
+    --card-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg);color:var(--text);
+    font-family:"Segoe UI",Roboto,Arial,sans-serif;
+    overflow:hidden;
+  }
+
+  /* ---------- Top bar ---------- */
+  #topbar{
+    position:fixed;top:0;left:0;right:0;height:56px;
+    background:var(--panel);border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:14px;padding:0 14px;
+    z-index:50;
+  }
+  #topbar h1{font-size:16px;margin:0;color:var(--accent);white-space:nowrap;font-weight:600;}
+  #search{
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    padding:7px 10px;border-radius:6px;font-size:13px;min-width:220px;
+  }
+  #status{font-size:12px;color:var(--text-dim);}
+  #level-filter{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim);white-space:nowrap;}
+  #level-filter input{
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    padding:7px 6px;border-radius:6px;font-size:13px;width:52px;text-align:center;
+  }
+  #level-filter #btn-level-clear{padding:5px 8px;font-size:12px;line-height:1;}
+  .topbtn{
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    padding:7px 12px;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap;
+  }
+  .topbtn:hover{border-color:var(--accent);}
+  .topbtn.active{background:var(--accent);color:#1a1400;border-color:var(--accent);font-weight:700;}
+  #legend{margin-left:auto;display:flex;gap:12px;align-items:center;font-size:12px;color:var(--text-dim);}
+  .legend-item{display:flex;align-items:center;gap:5px;}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .dot.fir{background:var(--accent-2);}
+  .dot.nofir{background:#555;}
+
+  /* ---------- Trader filter drawer ---------- */
+  #traderbar{
+    position:fixed;top:56px;left:0;right:0;height:40px;
+    background:var(--panel-2);border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:6px;padding:0 14px;overflow-x:auto;
+    z-index:49;
+  }
+  .trader-toggle{
+    display:flex;align-items:center;gap:6px;background:var(--panel);
+    border:1px solid var(--border);border-radius:20px;padding:3px 10px 3px 3px;
+    cursor:pointer;font-size:12px;color:var(--text-dim);user-select:none;flex:0 0 auto;
+    opacity:.45;filter:grayscale(70%);transition:opacity .15s, filter .15s;
+  }
+  .trader-toggle img{width:22px;height:22px;border-radius:50%;object-fit:cover;background:#333;}
+  .trader-toggle.active{color:var(--text);border-color:var(--accent);opacity:1;filter:none;}
+  .trader-toggle.active{background:#26302a;}
+
+  /* ---------- Viewport / world ---------- */
+  #viewport{
+    position:absolute;top:96px;left:0;right:0;bottom:0;
+    overflow:hidden;cursor:grab;background:
+      radial-gradient(circle at 1px 1px, #23292544 1px, transparent 0) 0 0/28px 28px;
+  }
+  #viewport.dragging{cursor:grabbing;}
+  #world{
+    position:absolute;top:0;left:0;transform-origin:0 0;
+    will-change:transform;
+  }
+  svg#lines{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;}
+
+  /* ---------- Trader zone (background band + header card) ---------- */
+  .trader-zone{
+    position:absolute;border-radius:20px;pointer-events:none;
+  }
+  .trader-zone-header{
+    position:absolute;top:10px;left:50%;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none;
+    white-space:nowrap;
+  }
+  .trader-zone-header-top{display:flex;align-items:center;gap:24px;}
+  .trader-zone-header img{
+    width:calc(var(--card-w) * 2);height:calc(var(--card-w) * 2);border-radius:50%;object-fit:cover;
+    border:4px solid rgba(255,255,255,.75);box-shadow:0 4px 16px rgba(0,0,0,.5);
+  }
+  .trader-zone-progress{
+    font-size:var(--card-w);line-height:1;font-weight:800;color:#fff;
+    text-shadow:0 2px 10px rgba(0,0,0,.9);
+  }
+  .trader-zone-name{
+    font-size:22px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9);
+  }
+
+  .qtrader-avatar{
+    width:26px;height:26px;border-radius:50%;object-fit:cover;
+    flex:0 0 auto;border:1px solid var(--accent);background:#222;
+  }
+
+  /* ---------- Quest card ---------- */
+  .qcard{
+    position:absolute;width:var(--card-w);
+    background:var(--panel);border:1px solid var(--border);border-radius:10px;
+    padding:10px;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.35);
+  }
+  .qcard.completed{background:#14171590;opacity:.55;}
+  .qcard.completed .qname{text-decoration:line-through;}
+  .qcard.kappa{background:#241a0c;border-color:#7a5a24;box-shadow:0 0 0 1px rgba(199,161,90,.3),0 2px 6px rgba(0,0,0,.35);}
+  .qcard.kappa.completed{background:#1c150c90;}
+  .qcard.related-hl{outline:2px solid var(--accent);box-shadow:0 0 12px rgba(199,161,90,.5);z-index:3;}
+  .qcard.self-hl{outline:2px solid #fff;z-index:4;}
+  #lines path.hl{stroke:var(--accent) !important;stroke-width:3 !important;opacity:1;}
+  .kappa-badge{
+    position:absolute;top:-9px;right:-9px;width:22px;height:22px;border-radius:50%;
+    background:var(--accent);color:#1a1400;font-weight:800;font-size:12px;
+    display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);
+    z-index:2;
+  }
+  .qcard-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:6px;}
+  .qname{font-weight:600;color:var(--text);font-size:13px;line-height:1.25;}
+  .qobjectives{display:flex;flex-direction:column;gap:5px;margin:0 0 8px;}
+  .qobjective{
+    display:flex;align-items:flex-start;gap:6px;cursor:pointer;
+    background:var(--panel-2);border:1px solid var(--border);border-radius:6px;padding:5px 7px;
+    font-size:11px;color:var(--text);line-height:1.35;
+  }
+  .qobjective:hover{border-color:var(--accent);}
+  .qobjective input{margin-top:1px;flex:0 0 auto;cursor:pointer;}
+  .qobjective.done{opacity:.55;}
+  .qobjective.done span{text-decoration:line-through;}
+  #modal .qobjective{font-size:13px;padding:8px 10px;}
+  .map-hl{color:var(--accent);font-weight:600;background:rgba(199,161,90,.15);border-radius:3px;padding:0 2px;}
+  .faction-usec{color:#4a9eff;font-weight:700;background:rgba(74,158,255,.15);border-radius:3px;padding:0 2px;}
+  .faction-bear{color:var(--accent-2);font-weight:700;background:rgba(90,161,122,.15);border-radius:3px;padding:0 2px;}
+  .qlevel{
+    flex:0 0 auto;background:#2b241a;color:var(--accent);border:1px solid #45391f;
+    border-radius:5px;padding:1px 6px;font-size:11px;white-space:nowrap;
+  }
+  .qitems{display:flex;flex-direction:column;gap:6px;margin:6px 0;}
+  .qitem{display:flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--border);border-radius:6px;padding:4px 6px;}
+  .qitem-imgwrap{position:relative;width:30px;height:30px;flex:0 0 auto;}
+  .qitem-imgwrap img{width:30px;height:30px;object-fit:contain;background:#111;border-radius:4px;border:1px solid var(--border);}
+  .fir-badge{
+    position:absolute;bottom:-3px;right:-3px;width:14px;height:14px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:bold;
+    border:1px solid var(--bg);
+  }
+  .fir-badge.yes{background:var(--accent-2);color:#0e1210;}
+  .fir-badge.no{background:#555;color:#ccc;}
+  .qitem-info{flex:1;min-width:0;}
+  .qitem-name{
+    font-size:11px;color:var(--text);line-height:1.3;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .qitem-progress{display:flex;align-items:center;gap:4px;margin-top:2px;}
+  .qitem-progress button{
+    width:16px;height:16px;line-height:14px;text-align:center;padding:0;
+    background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:3px;cursor:pointer;font-size:11px;
+  }
+  .qitem-progress input{
+    width:34px;background:var(--panel);border:1px solid var(--border);color:var(--text);
+    text-align:center;border-radius:3px;font-size:11px;padding:1px 2px;
+  }
+  .qitem-progress .need{color:var(--text-dim);font-size:11px;}
+  .qitem-progress.done .have{color:var(--accent-2);}
+  .qcard-foot{display:flex;gap:6px;margin-top:8px;}
+  .qcard-foot button{
+    flex:1;padding:6px 4px;border-radius:6px;border:1px solid var(--border);
+    background:var(--panel-2);color:var(--text);font-size:11px;cursor:pointer;
+  }
+  .qcard-foot .btn-details:hover{border-color:var(--accent);}
+  .qcard-foot .btn-done{border-color:#2f4736;}
+  .qcard-foot .btn-done.on{background:var(--accent-2);color:#0e1210;font-weight:600;}
+  .no-items{color:var(--text-dim);font-size:11px;font-style:italic;}
+
+  /* ---------- Modal ---------- */
+  #modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;
+    align-items:center;justify-content:center;z-index:100;
+  }
+  #modal-overlay.open{display:flex;}
+  #modal{
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    width:520px;max-width:92vw;max-height:82vh;overflow-y:auto;padding:20px;
+  }
+  #modal h2{margin:0 0 4px;color:var(--accent);font-size:18px;}
+  #modal .modal-trader{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:var(--text-dim);font-size:13px;}
+  #modal .modal-trader img{width:26px;height:26px;border-radius:50%;}
+  #modal .modal-section-title{margin:14px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim);}
+  #modal .modal-objectives{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  #modal .modal-objectives li{background:var(--panel-2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;}
+  #modal .modal-requirements li.req-done{color:var(--accent-2);border-color:#2f4736;}
+  #modal .modal-link{cursor:pointer;transition:border-color .15s,background .15s;}
+  #modal .modal-link:hover{border-color:var(--accent);background:#252c26;}
+  #modal .modal-kappa{
+    display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:12px;
+    background:rgba(199,161,90,.12);border:1px solid #7a5a24;border-radius:6px;padding:6px 10px;margin-bottom:10px;
+  }
+  #modal .modal-close{
+    position:sticky;float:right;top:0;background:var(--panel-2);border:1px solid var(--border);
+    color:var(--text);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;
+  }
+  #modal-items{display:flex;flex-direction:column;gap:8px;}
+  #modal-items .qitem{padding:6px 8px;}
+  #modal a.wiki-link{color:var(--accent);font-size:12px;}
+
+  #loading{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:10px;background:var(--bg);z-index:200;color:var(--text-dim);font-size:14px;
+  }
+  #loading.hidden{display:none;}
+  .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div><div id="loading-text">Загрузка данных с tarkov.dev…</div></div>
+
+<div id="topbar">
+  <h1>EFT · Карта заданий</h1>
+  <input id="search" type="text" placeholder="Поиск задания…">
+  <div id="level-filter">
+    <span>Уровень</span>
+    <input id="level-from" type="number" min="1" placeholder="от">
+    <span>—</span>
+    <input id="level-to" type="number" min="1" placeholder="до">
+    <button class="topbtn" id="btn-level-clear" title="Сбросить фильтр по уровню">✕</button>
+  </div>
+  <button class="topbtn" id="btn-kappa-filter" title="Показать только задания, требуемые для Каппы">Нужны для каппы</button>
+  <button class="topbtn" id="btn-lightkeeper-filter" title="Показать только задания, необходимые для получения транспондера Смотрителя">Нужно для смотрителя</button>
+  <button class="topbtn" id="btn-active-filter" title="Показать только задания, доступные прямо сейчас (все требуемые задания уже выполнены)">Активные</button>
+  <button class="topbtn" id="btn-reset-view">Сбросить вид</button>
+  <button class="topbtn" id="btn-reset-progress">Сбросить прогресс</button>
+  <span id="status"></span>
+  <div id="legend">
+    <div class="legend-item"><span class="dot fir"></span> найдено в рейде</div>
+    <div class="legend-item"><span class="dot nofir"></span> не обязательно ФИР</div>
+  </div>
+</div>
+<div id="traderbar"></div>
+
+<div id="viewport">
+  <div id="world">
+    <svg id="lines"></svg>
+  </div>
+</div>
+
+<div id="modal-overlay">
+  <div id="modal"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var API_URL = "https://api.tarkov.dev/graphql";
+  var QUERY = "query { tasks(lang: ru) { id name minPlayerLevel wikiLink kappaRequired lightkeeperRequired " +
+    "trader { id name imageLink } " +
+    "taskRequirements { task { id name } } " +
+    "objectives { type description optional " +
+      "... on TaskObjectiveItem { count foundInRaid item { id name iconLink } } " +
+      "... on TaskObjectiveShoot { count targetNames } " +
+      "... on TaskObjectiveExtract { count exitStatus zoneNames } " +
+      "... on TaskObjectiveUseItem { count } " +
+      "... on TaskObjectiveQuestItem { count } " +
+      "... on TaskObjectiveExperience { count } " +
+    "} } maps(lang: ru) { name } }";
+
+  var LS_COMPLETED = "tarkov_quest_completed_v1";
+  var LS_ITEMS = "tarkov_item_have_v1";
+  var LS_TRADERS = "tarkov_trader_visible_v1";
+  var LS_VIEW = "tarkov_view_state_v1";
+  var LS_OBJ_DONE = "tarkov_objective_done_v1";
+
+  var TRADER_ORDER = ["Прапор", "Терапевт", "Лыжник", "Миротворец", "Механик", "Барахольщик", "Егерь", "Скупщик", "Реф"];
+  var CARD_W = 250, GAP_Y = 26, LEVEL_GAP = 34, HEADER_H = 580;
+  var ZONE_PAD = 26, ZONE_HEADER_H = 560;
+  var WIKI_API = "https://escapefromtarkov.fandom.com/api.php";
+
+  var state = {
+    tasks: [],
+    byId: {},
+    completed: loadJSON(LS_COMPLETED, {}),
+    itemHave: loadJSON(LS_ITEMS, {}),
+    objectiveDone: loadJSON(LS_OBJ_DONE, {}),
+    traderVisible: loadJSON(LS_TRADERS, {}),
+    view: loadJSON(LS_VIEW, {x:40, y:20, scale:0.85}),
+    levelFrom: null,
+    levelTo: null,
+    kappaOnly: false,
+    lightkeeperOnly: false,
+    activeOnly: false
+  };
+
+  function loadJSON(key, fallback){
+    try{
+      var v = localStorage.getItem(key);
+      return v ? JSON.parse(v) : fallback;
+    }catch(e){ return fallback; }
+  }
+  function saveJSON(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  }
+
+  var elWorld = document.getElementById("world");
+  var elViewport = document.getElementById("viewport");
+  var elSvg = document.getElementById("lines");
+  var elStatus = document.getElementById("status");
+  var elTraderbar = document.getElementById("traderbar");
+  var elLoading = document.getElementById("loading");
+  var elLoadingText = document.getElementById("loading-text");
+
+  // ---------------- Fetch data ----------------
+  fetch(API_URL, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({query: QUERY})
+  }).then(function(r){
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function(json){
+    if(json.errors) throw new Error(json.errors.map(function(e){return e.message;}).join("; "));
+    state.tasks = json.data.tasks.filter(function(t){ return t.trader; });
+    buildMapHighlightRegex((json.data.maps || []).map(function(m){ return m.name; }));
+    elLoadingText.textContent = "Определяем русские статьи вики…";
+    return resolveRuWikiLinks(state.tasks);
+  }).then(function(ruLinks){
+    state.tasks.forEach(function(t){ t.ruWikiLink = ruLinks[t.id] || t.wikiLink; });
+    init();
+  }).catch(function(err){
+    elLoadingText.textContent = "Не удалось загрузить данные: " + err.message +
+      ". Проверьте подключение к api.tarkov.dev и обновите страницу.";
+  });
+
+  // ---------------- Map name highlighting ----------------
+  var mapHighlightRegex = null;
+  function buildMapHighlightRegex(names){
+    var unique = names.filter(Boolean).filter(function(n, i, arr){ return arr.indexOf(n) === i; });
+    if(!unique.length) return;
+    var escaped = unique.sort(function(a, b){ return b.length - a.length; })
+      .map(function(n){ return n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); });
+    mapHighlightRegex = new RegExp("(" + escaped.join("|") + ")", "g");
+  }
+  var FACTION_REGEX = /\b(USEC|BEAR)\b/g;
+  function highlightMapsHtml(text){
+    var escaped = escHtml(text);
+    if(!escaped) return escaped;
+    if(mapHighlightRegex) escaped = escaped.replace(mapHighlightRegex, '<span class="map-hl">$1</span>');
+    escaped = escaped.replace(FACTION_REGEX, function(m, faction){
+      return '<span class="faction-' + faction.toLowerCase() + '">' + faction + '</span>';
+    });
+    return escaped;
+  }
+
+  // ---------------- Russian wiki link resolution ----------------
+  function englishTitleFromWikiLink(link){
+    if(!link) return null;
+    var m = link.match(/\/wiki\/([^?#]+)/);
+    if(!m) return null;
+    try{ return decodeURIComponent(m[1]).replace(/_/g, " "); }catch(e){ return m[1].replace(/_/g, " "); }
+  }
+  function chunkArray(arr, size){
+    var out = [];
+    for(var i=0;i<arr.length;i+=size) out.push(arr.slice(i, i+size));
+    return out;
+  }
+  function resolveRuWikiLinks(tasks){
+    var titleToTaskIds = {};
+    tasks.forEach(function(t){
+      var title = englishTitleFromWikiLink(t.wikiLink);
+      if(!title) return;
+      (titleToTaskIds[title] = titleToTaskIds[title] || []).push(t.id);
+    });
+    var uniqueTitles = Object.keys(titleToTaskIds);
+    var ruLinkByTaskId = {};
+    if(!uniqueTitles.length) return Promise.resolve(ruLinkByTaskId);
+
+    var batches = chunkArray(uniqueTitles, 45);
+    var promises = batches.map(function(batch){
+      var url = WIKI_API + "?action=query&redirects=1&titles=" +
+        encodeURIComponent(batch.join("|")) +
+        "&prop=langlinks&lllang=ru&lllimit=500&format=json&origin=*";
+      return fetch(url).then(function(r){ return r.ok ? r.json() : null; }).then(function(json){
+        if(!json || !json.query || !json.query.pages) return;
+        var normMap = {};
+        (json.query.normalized || []).forEach(function(n){ normMap[n.to] = n.from; });
+        (json.query.redirects || []).forEach(function(rd){ normMap[rd.to] = normMap[rd.from] || rd.from; });
+        Object.keys(json.query.pages).forEach(function(pid){
+          var page = json.query.pages[pid];
+          var originalTitle = normMap[page.title] || page.title;
+          var ll = page.langlinks && page.langlinks[0];
+          if(!ll || !ll["*"]) return;
+          var ruUrl = "https://escapefromtarkov.fandom.com/ru/wiki/" + encodeURIComponent(ll["*"].replace(/ /g, "_"));
+          (titleToTaskIds[originalTitle] || []).forEach(function(id){ ruLinkByTaskId[id] = ruUrl; });
+        });
+      }).catch(function(){ /* batch failed, tasks fall back to English wiki link */ });
+    });
+    return Promise.all(promises).then(function(){ return ruLinkByTaskId; });
+  }
+
+  // ---------------- Init / layout ----------------
+  function init(){
+    state.tasks.forEach(function(t){ state.byId[t.id] = t; });
+
+    state.dependents = {}; // taskId -> [tasks that require it]
+    state.tasks.forEach(function(t){
+      (t.taskRequirements || []).forEach(function(req){
+        if(req.task){
+          (state.dependents[req.task.id] = state.dependents[req.task.id] || []).push(t);
+        }
+      });
+    });
+
+    var traders = {};
+    state.tasks.forEach(function(t){
+      if(!traders[t.trader.id]) traders[t.trader.id] = {id:t.trader.id, name:t.trader.name, imageLink:t.trader.imageLink, tasks:[]};
+      traders[t.trader.id].tasks.push(t);
+    });
+    var traderList = Object.keys(traders).map(function(k){ return traders[k]; })
+      .sort(function(a,b){
+        var ia = TRADER_ORDER.indexOf(a.name), ib = TRADER_ORDER.indexOf(b.name);
+        if(ia === -1) ia = TRADER_ORDER.length;
+        if(ib === -1) ib = TRADER_ORDER.length;
+        if(ia !== ib) return ia - ib;
+        return a.name.localeCompare(b.name);
+      });
+
+    traderList.forEach(function(tr){
+      if(!(tr.id in state.traderVisible)) state.traderVisible[tr.id] = true;
+    });
+
+    // compute level (depth) per task, memoized, cycle-safe
+    var levelCache = {};
+    var visiting = {};
+    function levelOf(id){
+      if(levelCache[id] !== undefined) return levelCache[id];
+      if(visiting[id]) return 0; // cycle guard
+      visiting[id] = true;
+      var t = state.byId[id];
+      var lvl = 0;
+      if(t && t.taskRequirements && t.taskRequirements.length){
+        t.taskRequirements.forEach(function(req){
+          if(req.task && state.byId[req.task.id]){
+            lvl = Math.max(lvl, levelOf(req.task.id) + 1);
+          }
+        });
+      }
+      visiting[id] = false;
+      levelCache[id] = lvl;
+      return lvl;
+    }
+    state.tasks.forEach(function(t){ levelOf(t.id); });
+    var maxLevel = 0;
+    Object.keys(levelCache).forEach(function(id){ maxLevel = Math.max(maxLevel, levelCache[id]); });
+
+    var levelNodes = [];
+    for(var i=0;i<=maxLevel;i++) levelNodes.push([]);
+    state.tasks.forEach(function(t){ levelNodes[levelCache[t.id]].push(t.id); });
+
+    // pass 1: build & append all cards (unpositioned) so real heights can be measured
+    var cardEls = {};
+    state.tasks.forEach(function(t){
+      var card = buildCardElement(t);
+      elWorld.appendChild(card);
+      cardEls[t.id] = card;
+    });
+    var heights = {};
+    Object.keys(cardEls).forEach(function(id){ heights[id] = cardEls[id].offsetHeight; });
+
+    // pass 2: each trader gets its own exclusive horizontal column (zone) so columns
+    // never overlap; inside a trader's column, its own quests still fan out
+    // horizontally (barycenter heuristic on same-trader prerequisites) so it's clear
+    // which line connects to which card.
+    var SLOT_W = CARD_W + 70;
+    var TRADER_GAP = 90; // gap between one trader's column and the next
+    var positions = {}; // taskId -> {x,y,h}
+
+    var cursorX = 0;
+    traderList.forEach(function(tr){
+      var traderTaskIds = tr.tasks.map(function(t){ return t.id; });
+      var inTrader = {};
+      traderTaskIds.forEach(function(id){ inTrader[id] = true; });
+
+      var byLevel = {};
+      traderTaskIds.forEach(function(id){
+        var l = levelCache[id];
+        (byLevel[l] = byLevel[l] || []).push(id);
+      });
+      var levels = Object.keys(byLevel).map(Number).sort(function(a, b){ return a - b; });
+
+      var localX = {};
+      levels.forEach(function(l){
+        var nodes = byLevel[l];
+        var desired = {};
+        nodes.forEach(function(id){
+          var t = state.byId[id];
+          var parentXs = (t.taskRequirements || [])
+            .map(function(req){ return req.task && inTrader[req.task.id] && localX[req.task.id] !== undefined ? localX[req.task.id] : null; })
+            .filter(function(x){ return x !== null; });
+          desired[id] = parentXs.length ? parentXs.reduce(function(a, b){ return a + b; }, 0) / parentXs.length : null;
+        });
+        nodes.sort(function(a, b){
+          var da = desired[a], db = desired[b];
+          if(da !== null && db !== null && da !== db) return da - db;
+          if((da !== null) !== (db !== null)) return da !== null ? -1 : 1;
+          return state.byId[a].name.localeCompare(state.byId[b].name);
+        });
+        var cursor = null;
+        nodes.forEach(function(id){
+          var x = desired[id] !== null ? desired[id] : 0;
+          if(cursor !== null) x = Math.max(x, cursor + SLOT_W);
+          localX[id] = x;
+          cursor = x;
+        });
+      });
+
+      var minX = Infinity, maxX = -Infinity;
+      traderTaskIds.forEach(function(id){
+        minX = Math.min(minX, localX[id]);
+        maxX = Math.max(maxX, localX[id]);
+      });
+      traderTaskIds.forEach(function(id){
+        positions[id] = {x: cursorX + (localX[id] - minX)};
+      });
+      cursorX += (maxX - minX) + CARD_W + TRADER_GAP;
+    });
+
+    // row heights: tallest card in each level (cards no longer stack within a level)
+    var rowHeight = [];
+    for(var l=0;l<=maxLevel;l++){
+      var maxH = 0;
+      levelNodes[l].forEach(function(id){ maxH = Math.max(maxH, heights[id]); });
+      rowHeight.push(maxH);
+    }
+    var rowY = [HEADER_H];
+    for(var l2=1; l2<=maxLevel; l2++){
+      rowY.push(rowY[l2-1] + rowHeight[l2-1] + LEVEL_GAP);
+    }
+
+    var maxX = 0;
+    state.tasks.forEach(function(t){
+      var pos = positions[t.id];
+      pos.y = rowY[levelCache[t.id]];
+      pos.h = heights[t.id];
+      cardEls[t.id].style.left = pos.x + "px";
+      cardEls[t.id].style.top = pos.y + "px";
+      maxX = Math.max(maxX, pos.x);
+    });
+
+    var totalWidth = maxX + CARD_W + 60;
+    var totalHeight = rowY[maxLevel] + rowHeight[maxLevel] + 60;
+
+    elWorld.style.width = totalWidth + "px";
+    elWorld.style.height = totalHeight + "px";
+    elSvg.setAttribute("width", totalWidth);
+    elSvg.setAttribute("height", totalHeight);
+    elSvg.setAttribute("viewBox", "0 0 " + totalWidth + " " + totalHeight);
+
+    // bounding box per trader, used to draw a zoned background band + header behind their cards
+    var traderBounds = {};
+    state.tasks.forEach(function(t){
+      var pos = positions[t.id];
+      var b = traderBounds[t.trader.id] || (traderBounds[t.trader.id] = {minX:Infinity, maxX:-Infinity, minY:Infinity, maxY:-Infinity});
+      b.minX = Math.min(b.minX, pos.x);
+      b.maxX = Math.max(b.maxX, pos.x + CARD_W);
+      b.minY = Math.min(b.minY, pos.y);
+      b.maxY = Math.max(b.maxY, pos.y + pos.h);
+    });
+    renderTraderZones(traderList, traderBounds);
+
+    renderTraderBar(traderList);
+    renderLines(positions);
+    applyVisibility();
+    setupHoverHighlight(cardEls);
+
+    state.traderCount = traderList.length;
+    updateStatusLabel();
+    elLoading.classList.add("hidden");
+
+    setupPanZoom();
+    setupSearch();
+    setupLevelFilter();
+    applyView();
+  }
+
+  function renderTraderZones(traderList, traderBounds){
+    traderList.forEach(function(tr, idx){
+      var b = traderBounds[tr.id];
+      if(!b) return;
+      var hue = Math.round(idx * (360 / traderList.length));
+      var zone = document.createElement("div");
+      zone.className = "trader-zone";
+      zone.dataset.trader = tr.id;
+      zone.style.left = (b.minX - ZONE_PAD) + "px";
+      zone.style.top = (b.minY - ZONE_HEADER_H) + "px";
+      zone.style.width = (b.maxX - b.minX + ZONE_PAD * 2) + "px";
+      zone.style.height = (b.maxY - b.minY + ZONE_HEADER_H + ZONE_PAD) + "px";
+      zone.style.background = "hsla(" + hue + ",50%,22%,.32)";
+      zone.style.border = "1px solid hsla(" + hue + ",55%,55%,.45)";
+      zone.innerHTML =
+        '<div class="trader-zone-header">' +
+          '<div class="trader-zone-header-top">' +
+            '<img src="' + escAttr(tr.imageLink) + '" alt="' + escAttr(tr.name) + '" loading="lazy">' +
+            '<span class="trader-zone-progress" data-trader="' + escAttr(tr.id) + '"></span>' +
+          '</div>' +
+          '<span class="trader-zone-name">' + escHtml(tr.name) + '</span>' +
+        '</div>';
+      elWorld.insertBefore(zone, elSvg);
+    });
+    updateTraderProgressLabels(traderList);
+  }
+
+  function updateTraderProgressLabels(traderList){
+    if(traderList) state.traderListCache = traderList;
+    traderList = traderList || state.traderListCache;
+    if(!traderList) return;
+    traderList.forEach(function(tr){
+      var done = tr.tasks.filter(function(t){ return state.completed[t.id]; }).length;
+      var el = elWorld.querySelector('.trader-zone-progress[data-trader="' + cssEscape(tr.id) + '"]');
+      if(el) el.textContent = done + "/" + tr.tasks.length;
+    });
+  }
+
+  function updateStatusLabel(){
+    var done = state.tasks.filter(function(t){ return state.completed[t.id]; }).length;
+    elStatus.textContent = done + "/" + state.tasks.length + " заданий · " + state.traderCount + " торговцев";
+  }
+
+  function renderTraderBar(traderList){
+    elTraderbar.innerHTML = "";
+    traderList.forEach(function(tr){
+      var btn = document.createElement("div");
+      btn.className = "trader-toggle" + (state.traderVisible[tr.id] ? " active" : "");
+      btn.dataset.trader = tr.id;
+      btn.innerHTML = '<img src="' + escAttr(tr.imageLink) + '" alt="">' + '<span>' + escHtml(tr.name) + '</span>';
+      btn.addEventListener("click", function(){
+        state.traderVisible[tr.id] = !state.traderVisible[tr.id];
+        saveJSON(LS_TRADERS, state.traderVisible);
+        btn.classList.toggle("active", state.traderVisible[tr.id]);
+        applyVisibility();
+      });
+      elTraderbar.appendChild(btn);
+    });
+  }
+
+  function levelInRange(level){
+    level = level || 1;
+    if(state.levelFrom !== null && level < state.levelFrom) return false;
+    if(state.levelTo !== null && level > state.levelTo) return false;
+    return true;
+  }
+
+  // "Active" = not completed yet, and every prerequisite quest is already completed
+  // (i.e. it's actually available to start right now).
+  function isTaskActive(t){
+    if(!t) return false;
+    if(state.completed[t.id]) return false;
+    var reqs = t.taskRequirements || [];
+    return reqs.every(function(req){ return req.task && state.completed[req.task.id]; });
+  }
+
+  function applyVisibility(){
+    elWorld.querySelectorAll(".trader-zone").forEach(function(zone){
+      zone.style.display = (state.traderVisible[zone.dataset.trader] !== false) ? "" : "none";
+    });
+    var visibleTaskIds = {};
+    elWorld.querySelectorAll(".qcard").forEach(function(card){
+      var traderOk = state.traderVisible[card.dataset.trader] !== false;
+      var task = state.byId[card.dataset.taskId];
+      var levelOk = levelInRange(task ? task.minPlayerLevel : 1);
+      var kappaOk = !state.kappaOnly || (task && task.kappaRequired);
+      var lightkeeperOk = !state.lightkeeperOnly || (task && task.lightkeeperRequired);
+      var activeOk = !state.activeOnly || isTaskActive(task);
+      var visible = traderOk && levelOk && kappaOk && lightkeeperOk && activeOk;
+      card.style.display = visible ? "" : "none";
+      if(visible) visibleTaskIds[card.dataset.taskId] = true;
+    });
+    elSvg.querySelectorAll("path").forEach(function(path){
+      var visible = visibleTaskIds[path.dataset.from] && visibleTaskIds[path.dataset.to];
+      path.style.display = visible ? "" : "none";
+    });
+  }
+
+  var ITEM_OBJECTIVE_TYPES = ["giveItem", "findItem", "plantItem"];
+  function itemObjectives(t){
+    return (t.objectives || []).filter(function(o){ return ITEM_OBJECTIVE_TYPES.indexOf(o.type) !== -1; }).filter(function(o){ return o.item; });
+  }
+  function nonItemObjectives(t){
+    return (t.objectives || []).filter(function(o){ return ITEM_OBJECTIVE_TYPES.indexOf(o.type) === -1 || !o.item; });
+  }
+  function objectiveCountSuffix(obj){
+    return (typeof obj.count === "number" && obj.count > 0) ? " — " + obj.count : "";
+  }
+  function buildObjectiveRow(obj, storageKey){
+    var row = document.createElement("label");
+    row.className = "qobjective" + (state.objectiveDone[storageKey] ? " done" : "");
+    row.dataset.objKey = storageKey;
+    var checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = !!state.objectiveDone[storageKey];
+    checkbox.addEventListener("change", function(){
+      state.objectiveDone[storageKey] = checkbox.checked;
+      saveJSON(LS_OBJ_DONE, state.objectiveDone);
+      document.querySelectorAll('.qobjective[data-obj-key="' + cssEscape(storageKey) + '"]').forEach(function(el){
+        el.classList.toggle("done", checkbox.checked);
+        var input = el.querySelector("input");
+        if(input) input.checked = checkbox.checked;
+      });
+    });
+    var text = document.createElement("span");
+    var label = (obj.description || "") + objectiveCountSuffix(obj);
+    text.innerHTML = highlightMapsHtml(label);
+    row.appendChild(checkbox);
+    row.appendChild(text);
+    return row;
+  }
+
+  function buildCardElement(t){
+      var card = document.createElement("div");
+      card.className = "qcard" + (state.completed[t.id] ? " completed" : "") + (t.kappaRequired ? " kappa" : "");
+      card.dataset.trader = t.trader.id;
+      card.dataset.taskId = t.id;
+      card.dataset.name = t.name.toLowerCase();
+
+      if(t.kappaRequired){
+        var kappaBadge = document.createElement("div");
+        kappaBadge.className = "kappa-badge";
+        kappaBadge.textContent = "κ";
+        kappaBadge.title = "Требуется для Каппы";
+        card.appendChild(kappaBadge);
+      }
+
+      var head = document.createElement("div");
+      head.className = "qcard-head";
+      head.innerHTML =
+        '<img class="qtrader-avatar" src="' + escAttr(t.trader.imageLink) + '" alt="' + escAttr(t.trader.name) + '" title="' + escAttr(t.trader.name) + '" loading="lazy">' +
+        '<div class="qname">' + escHtml(t.name) + '</div>' +
+        '<div class="qlevel">Ур. ' + (t.minPlayerLevel || 1) + '</div>';
+      card.appendChild(head);
+
+      var subTasks = nonItemObjectives(t);
+      if(subTasks.length){
+        var objWrap = document.createElement("div");
+        objWrap.className = "qobjectives";
+        subTasks.forEach(function(obj, idx){
+          objWrap.appendChild(buildObjectiveRow(obj, t.id + "::obj::" + idx));
+        });
+        card.appendChild(objWrap);
+      }
+
+      var items = itemObjectives(t);
+      var itemsWrap = document.createElement("div");
+      itemsWrap.className = "qitems";
+      if(items.length === 0){
+        itemsWrap.innerHTML = '<div class="no-items">Нет предметных требований</div>';
+      } else {
+        items.forEach(function(obj, idx){
+          itemsWrap.appendChild(buildItemRow(obj, t.id + "::" + idx));
+        });
+      }
+      card.appendChild(itemsWrap);
+
+      var foot = document.createElement("div");
+      foot.className = "qcard-foot";
+      var btnDetails = document.createElement("button");
+      btnDetails.className = "btn-details";
+      btnDetails.textContent = "Подробности";
+      btnDetails.addEventListener("click", function(){ openModal(t); });
+      var btnDone = document.createElement("button");
+      btnDone.className = "btn-done" + (state.completed[t.id] ? " on" : "");
+      btnDone.textContent = state.completed[t.id] ? "Выполнено ✓" : "Выполнено";
+      btnDone.addEventListener("click", function(){
+        state.completed[t.id] = !state.completed[t.id];
+        saveJSON(LS_COMPLETED, state.completed);
+        card.classList.toggle("completed", !!state.completed[t.id]);
+        btnDone.classList.toggle("on", !!state.completed[t.id]);
+        btnDone.textContent = state.completed[t.id] ? "Выполнено ✓" : "Выполнено";
+        updateFilterProgressLabels();
+        if(state.activeOnly) applyVisibility();
+        updateTraderProgressLabels();
+        updateStatusLabel();
+      });
+      foot.appendChild(btnDetails);
+      foot.appendChild(btnDone);
+      card.appendChild(foot);
+
+      return card;
+  }
+
+  function buildItemRow(obj, storageKey){
+    var row = document.createElement("div");
+    row.className = "qitem";
+    var need = obj.count || 1;
+    var have = state.itemHave[storageKey] || 0;
+
+    var imgWrap = document.createElement("div");
+    imgWrap.className = "qitem-imgwrap";
+    imgWrap.innerHTML =
+      '<img src="' + escAttr(obj.item.iconLink) + '" alt="' + escAttr(obj.item.name) + '" loading="lazy">' +
+      '<span class="fir-badge ' + (obj.foundInRaid ? "yes" : "no") + '" title="' +
+        (obj.foundInRaid ? "Обязательно найдено в рейде" : "Не обязательно ФИР") + '">' +
+        (obj.foundInRaid ? "✓" : "✕") + '</span>';
+    row.appendChild(imgWrap);
+
+    var info = document.createElement("div");
+    info.className = "qitem-info";
+    var nameDiv = document.createElement("div");
+    nameDiv.className = "qitem-name";
+    var label = (obj.description && obj.description.trim()) ? obj.description.trim() : obj.item.name;
+    nameDiv.innerHTML = highlightMapsHtml(label);
+    nameDiv.title = label;
+    info.appendChild(nameDiv);
+
+    var prog = document.createElement("div");
+    prog.className = "qitem-progress" + (have >= need ? " done" : "");
+    prog.dataset.key = storageKey;
+
+    var minusBtn = document.createElement("button");
+    minusBtn.textContent = "−";
+    var input = document.createElement("input");
+    input.type = "number";
+    input.min = "0";
+    input.className = "have";
+    input.value = have;
+    var plusBtn = document.createElement("button");
+    plusBtn.textContent = "+";
+    var needSpan = document.createElement("span");
+    needSpan.className = "need";
+    needSpan.textContent = "/ " + need;
+
+    function commit(newVal){
+      newVal = Math.max(0, parseInt(newVal, 10) || 0);
+      state.itemHave[storageKey] = newVal;
+      saveJSON(LS_ITEMS, state.itemHave);
+      document.querySelectorAll('.qitem-progress[data-key="' + cssEscape(storageKey) + '"]').forEach(function(el){
+        var inp = el.querySelector(".have");
+        var n = parseInt(el.querySelector(".need").textContent.replace("/","").trim(), 10) || 1;
+        inp.value = newVal;
+        el.classList.toggle("done", newVal >= n);
+      });
+    }
+    minusBtn.addEventListener("click", function(){ commit((parseInt(input.value,10)||0) - 1); });
+    plusBtn.addEventListener("click", function(){ commit((parseInt(input.value,10)||0) + 1); });
+    input.addEventListener("change", function(){ commit(input.value); });
+    input.addEventListener("mousedown", function(e){ e.stopPropagation(); });
+    input.addEventListener("click", function(e){ e.stopPropagation(); });
+
+    prog.appendChild(minusBtn);
+    prog.appendChild(input);
+    prog.appendChild(plusBtn);
+    prog.appendChild(needSpan);
+    info.appendChild(prog);
+    row.appendChild(info);
+    return row;
+  }
+
+  function cssEscape(s){
+    return String(s).replace(/[^a-zA-Z0-9_-]/g, function(c){ return "\\" + c; });
+  }
+
+  var LINE_EXCLUDE_NAMES = ["Коллекционер"]; // quests so widely required that drawing their lines is just noise
+
+  function renderLines(positions){
+    var svgns = "http://www.w3.org/2000/svg";
+    var frag = document.createDocumentFragment();
+    state.tasks.forEach(function(t){
+      var to = positions[t.id];
+      if(!to || !t.taskRequirements) return;
+      if(LINE_EXCLUDE_NAMES.indexOf(t.name) !== -1) return;
+      t.taskRequirements.forEach(function(req){
+        if(!req.task) return;
+        if(LINE_EXCLUDE_NAMES.indexOf(req.task.name) !== -1) return;
+        var from = positions[req.task.id];
+        if(!from) return;
+        var x1 = from.x + CARD_W/2, y1 = from.y + from.h;
+        var x2 = to.x + CARD_W/2, y2 = to.y;
+        var midY = (y1 + y2) / 2;
+        var path = document.createElementNS(svgns, "path");
+        var d = "M " + x1 + " " + y1 + " C " + x1 + " " + midY + ", " + x2 + " " + midY + ", " + x2 + " " + y2;
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", "#3c4a41");
+        path.setAttribute("stroke-width", "1.6");
+        path.dataset.from = req.task.id;
+        path.dataset.to = t.id;
+        frag.appendChild(path);
+      });
+    });
+    elSvg.appendChild(frag);
+  }
+
+  function setupHoverHighlight(cardEls){
+    var related = {}; // taskId -> Set of directly connected taskIds (parents + children)
+    function link(a, b){
+      (related[a] = related[a] || {})[b] = true;
+      (related[b] = related[b] || {})[a] = true;
+    }
+    state.tasks.forEach(function(t){
+      (t.taskRequirements || []).forEach(function(req){
+        if(req.task && state.byId[req.task.id]) link(t.id, req.task.id);
+      });
+    });
+
+    Object.keys(cardEls).forEach(function(id){
+      var card = cardEls[id];
+      card.addEventListener("mouseenter", function(){
+        card.classList.add("self-hl");
+        Object.keys(related[id] || {}).forEach(function(rid){
+          if(cardEls[rid]) cardEls[rid].classList.add("related-hl");
+        });
+        elSvg.querySelectorAll('path[data-from="' + cssEscape(id) + '"], path[data-to="' + cssEscape(id) + '"]').forEach(function(p){
+          p.classList.add("hl");
+        });
+      });
+      card.addEventListener("mouseleave", function(){
+        card.classList.remove("self-hl");
+        Object.keys(related[id] || {}).forEach(function(rid){
+          if(cardEls[rid]) cardEls[rid].classList.remove("related-hl");
+        });
+        elSvg.querySelectorAll('path.hl').forEach(function(p){ p.classList.remove("hl"); });
+      });
+    });
+  }
+
+  // ---------------- Modal ----------------
+  var elOverlay = document.getElementById("modal-overlay");
+  var elModal = document.getElementById("modal");
+
+  function openModal(t){
+    var items = itemObjectives(t);
+    var subTasks = nonItemObjectives(t);
+    var reqs = t.taskRequirements || [];
+    var requirementsHtml = reqs.length ? reqs.map(function(req){
+      var reqTask = req.task && state.byId[req.task.id];
+      var name = reqTask ? reqTask.name : (req.task ? req.task.name : "Неизвестное задание");
+      var done = req.task && state.completed[req.task.id];
+      return '<li class="modal-link' + (done ? " req-done" : "") + '" data-goto="' + escAttr(req.task ? req.task.id : "") + '">' +
+        (done ? "✓ " : "") + escHtml(name) + '</li>';
+    }).join("") : "<li>Нет требуемых заданий</li>";
+
+    var dependents = state.dependents[t.id] || [];
+    var dependentsHtml = dependents.length ? dependents.slice().sort(function(a,b){
+      return a.name.localeCompare(b.name);
+    }).map(function(dep){
+      var done = state.completed[dep.id];
+      return '<li class="modal-link' + (done ? " req-done" : "") + '" data-goto="' + escAttr(dep.id) + '">' +
+        (done ? "✓ " : "") + escHtml(dep.name) + '</li>';
+    }).join("") : "<li>Нет заданий, зависящих от этого</li>";
+
+    var itemsHtml = "";
+    if(items.length){
+      itemsHtml = '<div class="modal-section-title">Требуемые предметы</div><div id="modal-items"></div>';
+    }
+    elModal.innerHTML =
+      '<button class="modal-close" id="modal-close-btn">Закрыть ✕</button>' +
+      '<h2>' + escHtml(t.name) + '</h2>' +
+      (t.kappaRequired ? '<div class="modal-kappa">κ Требуется для Каппы</div>' : "") +
+      '<div class="modal-trader"><img src="' + escAttr(t.trader.imageLink) + '"><span>' + escHtml(t.trader.name) + ' · требуемый уровень ' + (t.minPlayerLevel||1) + '</span></div>' +
+      (t.ruWikiLink ? '<a class="wiki-link" href="' + escAttr(t.ruWikiLink) + '" target="_blank" rel="noopener noreferrer">Открыть на вики ↗</a>' : "") +
+      '<div class="modal-section-title">Требуемые задания</div>' +
+      '<ul class="modal-objectives modal-requirements">' + requirementsHtml + '</ul>' +
+      '<div class="modal-section-title">Открывает задания</div>' +
+      '<ul class="modal-objectives modal-requirements">' + dependentsHtml + '</ul>' +
+      '<div class="modal-section-title">Текст задания</div>' +
+      '<div class="qobjectives" id="modal-subtasks">' +
+        (subTasks.length ? "" : "<div class=\"no-items\">Описание отсутствует</div>") +
+      '</div>' +
+      itemsHtml;
+
+    if(subTasks.length){
+      var subWrap = document.getElementById("modal-subtasks");
+      subTasks.forEach(function(obj, idx){ subWrap.appendChild(buildObjectiveRow(obj, t.id + "::obj::" + idx)); });
+    }
+    if(items.length){
+      var wrap = document.getElementById("modal-items");
+      items.forEach(function(obj, idx){ wrap.appendChild(buildItemRow(obj, t.id + "::" + idx)); });
+    }
+    elModal.querySelectorAll(".modal-link[data-goto]").forEach(function(li){
+      if(!li.dataset.goto) return;
+      li.addEventListener("click", function(){ focusOnTask(li.dataset.goto); });
+    });
+    document.getElementById("modal-close-btn").addEventListener("click", closeModal);
+    elOverlay.classList.add("open");
+  }
+
+  function focusOnTask(taskId){
+    var card = elWorld.querySelector('.qcard[data-task-id="' + cssEscape(taskId) + '"]');
+    if(!card) return;
+    closeModal();
+    var x = parseFloat(card.style.left), y = parseFloat(card.style.top);
+    var rect = elViewport.getBoundingClientRect();
+    state.view.scale = Math.max(state.view.scale, 0.7);
+    state.view.x = rect.width / 2 - (x + CARD_W / 2) * state.view.scale;
+    state.view.y = rect.height / 2 - (y + 60) * state.view.scale;
+    applyView();
+    saveJSON(LS_VIEW, state.view);
+    card.classList.add("self-hl");
+    setTimeout(function(){ card.classList.remove("self-hl"); }, 1600);
+  }
+  function closeModal(){ elOverlay.classList.remove("open"); }
+  elOverlay.addEventListener("click", function(e){ if(e.target === elOverlay) closeModal(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeModal(); });
+
+  // ---------------- Pan & Zoom ----------------
+  function applyView(){
+    elWorld.style.transform = "translate(" + state.view.x + "px," + state.view.y + "px) scale(" + state.view.scale + ")";
+  }
+
+  function setupPanZoom(){
+    var dragging = false, startX=0, startY=0, origX=0, origY=0;
+
+    elViewport.addEventListener("mousedown", function(e){
+      if(e.target.closest(".qitem-progress") || e.target.closest(".qobjective") || e.target.closest("button") || e.target.tagName === "INPUT") return;
+      dragging = true;
+      elViewport.classList.add("dragging");
+      startX = e.clientX; startY = e.clientY;
+      origX = state.view.x; origY = state.view.y;
+    });
+    window.addEventListener("mousemove", function(e){
+      if(!dragging) return;
+      state.view.x = origX + (e.clientX - startX);
+      state.view.y = origY + (e.clientY - startY);
+      applyView();
+    });
+    window.addEventListener("mouseup", function(){
+      if(dragging){ dragging = false; elViewport.classList.remove("dragging"); saveJSON(LS_VIEW, state.view); }
+    });
+
+    elViewport.addEventListener("wheel", function(e){
+      e.preventDefault();
+      var rect = elViewport.getBoundingClientRect();
+      var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      var worldX = (mx - state.view.x) / state.view.scale;
+      var worldY = (my - state.view.y) / state.view.scale;
+      var delta = e.deltaY > 0 ? 0.9 : 1.1;
+      var newScale = Math.min(2.2, Math.max(0.15, state.view.scale * delta));
+      state.view.x = mx - worldX * newScale;
+      state.view.y = my - worldY * newScale;
+      state.view.scale = newScale;
+      applyView();
+      saveJSON(LS_VIEW, state.view);
+    }, {passive:false});
+
+    document.getElementById("btn-reset-view").addEventListener("click", function(){
+      state.view = {x:40, y:20, scale:0.85};
+      applyView();
+      saveJSON(LS_VIEW, state.view);
+    });
+    document.getElementById("btn-reset-progress").addEventListener("click", function(){
+      if(!confirm("Сбросить весь прогресс (выполненные задания и счётчики предметов)?")) return;
+      state.completed = {}; state.itemHave = {};
+      saveJSON(LS_COMPLETED, state.completed);
+      saveJSON(LS_ITEMS, state.itemHave);
+      location.reload();
+    });
+  }
+
+  function setupSearch(){
+    var input = document.getElementById("search");
+    var timer = null;
+    input.addEventListener("input", function(){
+      clearTimeout(timer);
+      timer = setTimeout(function(){
+        var q = input.value.trim().toLowerCase();
+        document.querySelectorAll(".qcard").forEach(function(c){ c.style.outline = ""; });
+        if(!q) return;
+        var match = null;
+        document.querySelectorAll(".qcard").forEach(function(c){
+          if(c.dataset.name.indexOf(q) !== -1){
+            c.style.outline = "2px solid var(--accent)";
+            if(!match) match = c;
+          }
+        });
+        if(match){
+          var x = parseFloat(match.style.left), y = parseFloat(match.style.top);
+          var rect = elViewport.getBoundingClientRect();
+          state.view.scale = Math.max(state.view.scale, 0.7);
+          state.view.x = rect.width/2 - (x + CARD_W/2) * state.view.scale;
+          state.view.y = rect.height/2 - (y + 60) * state.view.scale;
+          applyView();
+        }
+      }, 250);
+    });
+  }
+
+  function setupLevelFilter(){
+    var fromInput = document.getElementById("level-from");
+    var toInput = document.getElementById("level-to");
+    var timer = null;
+    function commit(){
+      clearTimeout(timer);
+      timer = setTimeout(function(){
+        var from = parseInt(fromInput.value, 10);
+        var to = parseInt(toInput.value, 10);
+        state.levelFrom = isNaN(from) ? null : from;
+        state.levelTo = isNaN(to) ? null : to;
+        applyVisibility();
+      }, 200);
+    }
+    fromInput.addEventListener("input", commit);
+    toInput.addEventListener("input", commit);
+    document.getElementById("btn-level-clear").addEventListener("click", function(){
+      fromInput.value = "";
+      toInput.value = "";
+      state.levelFrom = null;
+      state.levelTo = null;
+      applyVisibility();
+    });
+
+    var kappaBtn = document.getElementById("btn-kappa-filter");
+    kappaBtn.addEventListener("click", function(){
+      state.kappaOnly = !state.kappaOnly;
+      kappaBtn.classList.toggle("active", state.kappaOnly);
+      applyVisibility();
+    });
+
+    var lightkeeperBtn = document.getElementById("btn-lightkeeper-filter");
+    lightkeeperBtn.addEventListener("click", function(){
+      state.lightkeeperOnly = !state.lightkeeperOnly;
+      lightkeeperBtn.classList.toggle("active", state.lightkeeperOnly);
+      applyVisibility();
+    });
+
+    var activeBtn = document.getElementById("btn-active-filter");
+    activeBtn.addEventListener("click", function(){
+      state.activeOnly = !state.activeOnly;
+      activeBtn.classList.toggle("active", state.activeOnly);
+      applyVisibility();
+    });
+
+    updateFilterProgressLabels();
+  }
+
+  function updateFilterProgressLabels(){
+    var kappaTotal = 0, kappaDone = 0, lkTotal = 0, lkDone = 0;
+    state.tasks.forEach(function(t){
+      if(t.kappaRequired){
+        kappaTotal++;
+        if(state.completed[t.id]) kappaDone++;
+      }
+      if(t.lightkeeperRequired){
+        lkTotal++;
+        if(state.completed[t.id]) lkDone++;
+      }
+    });
+    var kappaBtn = document.getElementById("btn-kappa-filter");
+    var lightkeeperBtn = document.getElementById("btn-lightkeeper-filter");
+    if(kappaBtn) kappaBtn.textContent = "Нужны для каппы " + kappaDone + "/" + kappaTotal;
+    if(lightkeeperBtn) lightkeeperBtn.textContent = "Нужно для смотрителя " + lkDone + "/" + lkTotal;
+  }
+
+  // ---------------- Helpers ----------------
+  function escHtml(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function escAttr(s){ return escHtml(s); }
+
+})();
+</script>
+</body>
+</html>
