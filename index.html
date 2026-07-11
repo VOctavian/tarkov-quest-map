@@ -740,6 +740,7 @@
   var CARD_W = 250, GAP_Y = 26, LEVEL_GAP = 34, HEADER_H = 580;
   var ZONE_PAD = 26, ZONE_HEADER_H = 560;
   var WIKI_API = "https://escapefromtarkov.fandom.com/api.php";
+  var layoutState = {}; // cached data needed to re-run layoutAndRender() when trader visibility changes
 
   var state = {
     lang: langState.lang,
@@ -937,10 +938,48 @@
     var heights = {};
     Object.keys(cardEls).forEach(function(id){ heights[id] = cardEls[id].offsetHeight; });
 
-    // pass 2: each trader gets its own exclusive horizontal column (zone) so columns
-    // never overlap; inside a trader's column, its own quests still fan out
-    // horizontally (barycenter heuristic on same-trader prerequisites) so it's clear
-    // which line connects to which card.
+    layoutState.traderList = traderList;
+    layoutState.levelCache = levelCache;
+    layoutState.maxLevel = maxLevel;
+    layoutState.levelNodes = levelNodes;
+    layoutState.heights = heights;
+    layoutState.cardEls = cardEls;
+
+    layoutAndRender();
+
+    renderTraderBar(traderList);
+    setupHoverHighlight(cardEls);
+
+    state.traderCount = traderList.length;
+    updateStatusLabel();
+    elLoading.classList.add("hidden");
+
+    setupPanZoom();
+    setupSearch();
+    setupLevelFilter();
+    updateLayoutOffsets();
+    applyView();
+  }
+
+  // Positions & renders quest cards, trader zones and dependency lines based on the
+  // current state.traderVisible selection. Hidden traders' columns don't reserve any
+  // horizontal space, so toggling a trader off collapses the gap and the remaining
+  // trader columns pack together. Re-run on every trader visibility change (not just
+  // on initial load) so the layout stays tight.
+  function layoutAndRender(){
+    var traderList = layoutState.traderList;
+    var levelCache = layoutState.levelCache;
+    var maxLevel = layoutState.maxLevel;
+    var levelNodes = layoutState.levelNodes;
+    var heights = layoutState.heights;
+    var cardEls = layoutState.cardEls;
+
+    // each trader gets its own exclusive horizontal column (zone) so columns never
+    // overlap; inside a trader's column, its own quests still fan out horizontally
+    // (barycenter heuristic on same-trader prerequisites) so it's clear which line
+    // connects to which card. Hidden traders are still laid out internally (so their
+    // cards have valid positions if toggled back on) but don't advance the shared
+    // cursor, so visible columns sit flush against each other.
     var SLOT_W = CARD_W + 70;
     var TRADER_GAP = 90; // gap between one trader's column and the next
     var positions = {}; // taskId -> {x,y,h}
@@ -984,15 +1023,17 @@
         });
       });
 
-      var minX = Infinity, maxX = -Infinity;
+      var minX = Infinity, maxLocalX = -Infinity;
       traderTaskIds.forEach(function(id){
         minX = Math.min(minX, localX[id]);
-        maxX = Math.max(maxX, localX[id]);
+        maxLocalX = Math.max(maxLocalX, localX[id]);
       });
       traderTaskIds.forEach(function(id){
         positions[id] = {x: cursorX + (localX[id] - minX)};
       });
-      cursorX += (maxX - minX) + CARD_W + TRADER_GAP;
+      if(state.traderVisible[tr.id] !== false){
+        cursorX += (maxLocalX - minX) + CARD_W + TRADER_GAP;
+      }
     });
 
     // row heights: tallest card in each level (cards no longer stack within a level)
@@ -1014,7 +1055,7 @@
       pos.h = heights[t.id];
       cardEls[t.id].style.left = pos.x + "px";
       cardEls[t.id].style.top = pos.y + "px";
-      maxX = Math.max(maxX, pos.x);
+      if(state.traderVisible[t.trader.id] !== false) maxX = Math.max(maxX, pos.x);
     });
 
     var totalWidth = maxX + CARD_W + 60;
@@ -1026,9 +1067,11 @@
     elSvg.setAttribute("height", totalHeight);
     elSvg.setAttribute("viewBox", "0 0 " + totalWidth + " " + totalHeight);
 
-    // bounding box per trader, used to draw a zoned background band + header behind their cards
+    // bounding box per visible trader, used to draw a zoned background band + header
+    // behind their cards; hidden traders get no zone at all.
     var traderBounds = {};
     state.tasks.forEach(function(t){
+      if(state.traderVisible[t.trader.id] === false) return;
       var pos = positions[t.id];
       var b = traderBounds[t.trader.id] || (traderBounds[t.trader.id] = {minX:Infinity, maxX:-Infinity, minY:Infinity, maxY:-Infinity});
       b.minX = Math.min(b.minX, pos.x);
@@ -1036,22 +1079,13 @@
       b.minY = Math.min(b.minY, pos.y);
       b.maxY = Math.max(b.maxY, pos.y + pos.h);
     });
+    elWorld.querySelectorAll(".trader-zone").forEach(function(z){ z.remove(); });
     renderTraderZones(traderList, traderBounds);
 
-    renderTraderBar(traderList);
+    elSvg.querySelectorAll("path").forEach(function(p){ p.remove(); });
     renderLines(positions);
+
     applyVisibility();
-    setupHoverHighlight(cardEls);
-
-    state.traderCount = traderList.length;
-    updateStatusLabel();
-    elLoading.classList.add("hidden");
-
-    setupPanZoom();
-    setupSearch();
-    setupLevelFilter();
-    updateLayoutOffsets();
-    applyView();
   }
 
   function renderTraderZones(traderList, traderBounds){
@@ -1108,7 +1142,7 @@
         state.traderVisible[tr.id] = !state.traderVisible[tr.id];
         saveJSON(LS_TRADERS, state.traderVisible);
         btn.classList.toggle("active", state.traderVisible[tr.id]);
-        applyVisibility();
+        layoutAndRender();
       });
       elTraderbar.appendChild(btn);
     });
