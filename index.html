@@ -305,6 +305,54 @@
   .coffee-copy-btn.copied{background:var(--accent-2);color:#0e1210;border-color:var(--accent-2);}
   .coffee-qr{display:block;margin:10px auto 0;width:180px;height:180px;border-radius:8px;background:#fff;padding:6px;}
 
+  /* ---------- Feedback button ---------- */
+  #btn-feedback{
+    position:fixed;top:154px;right:14px;z-index:210;
+    display:flex;align-items:center;gap:7px;
+    background:var(--panel-2);color:var(--text);
+    border:1px solid var(--border);border-radius:22px;padding:8px 15px 8px 12px;
+    font-size:13px;font-weight:600;cursor:pointer;
+    box-shadow:0 3px 10px rgba(0,0,0,.4);
+  }
+  #btn-feedback:hover{border-color:var(--accent);color:var(--accent);}
+
+  #feedback-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;
+    align-items:center;justify-content:center;z-index:220;
+  }
+  #feedback-overlay.open{display:flex;}
+  #feedback-modal{
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    width:420px;max-width:92vw;max-height:86vh;overflow-y:auto;padding:20px;
+  }
+  #feedback-modal h2{margin:0 0 4px;color:var(--accent);font-size:18px;}
+  #feedback-modal .feedback-intro{color:var(--text-dim);font-size:13px;margin-bottom:14px;}
+  #feedback-modal .feedback-close{
+    position:sticky;float:right;top:0;background:var(--panel-2);border:1px solid var(--border);
+    color:var(--text);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;
+  }
+  .feedback-field{margin-bottom:12px;}
+  .feedback-field label{display:block;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:5px;}
+  .feedback-field input[type="text"],
+  .feedback-field input[type="email"],
+  .feedback-field textarea{
+    width:100%;background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;resize:vertical;
+  }
+  .feedback-field textarea{min-height:90px;}
+  .feedback-field input[type="file"]{
+    width:100%;font-size:12px;color:var(--text-dim);
+  }
+  #feedback-submit-btn{
+    width:100%;background:var(--accent);color:#1a1400;border:none;border-radius:6px;
+    padding:10px;font-size:13px;font-weight:700;cursor:pointer;
+  }
+  #feedback-submit-btn:disabled{opacity:.6;cursor:default;}
+  #feedback-status{margin-top:10px;font-size:13px;text-align:center;min-height:18px;}
+  #feedback-status.ok{color:var(--accent-2);}
+  #feedback-status.err{color:var(--danger);}
+  .feedback-hidden{position:absolute;left:-9999px;}
+
   #loading{
     position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
     flex-direction:column;gap:10px;background:var(--bg);z-index:200;color:var(--text-dim);font-size:14px;
@@ -400,6 +448,42 @@
   </div>
 </div>
 
+<button id="btn-feedback" title="Сообщить об ошибке или предложить идею">✉️ Фидбэк</button>
+<div id="feedback-overlay">
+  <div id="feedback-modal">
+    <button class="feedback-close" id="feedback-close-btn">Закрыть ✕</button>
+    <h2>✉️ Фидбэк</h2>
+    <div class="feedback-intro">Нашли баг, не хватает функции или просто есть идея — напишите, можно с картинкой.</div>
+
+    <form id="feedback-form" action="https://formspree.io/f/xeeyjqjy" method="POST" enctype="multipart/form-data">
+      <input type="text" name="_gotcha" class="feedback-hidden" tabindex="-1" autocomplete="off">
+
+      <div class="feedback-field">
+        <label for="feedback-name">Имя (необязательно)</label>
+        <input type="text" id="feedback-name" name="name" autocomplete="name">
+      </div>
+
+      <div class="feedback-field">
+        <label for="feedback-email">Email (необязательно, чтобы ответить)</label>
+        <input type="email" id="feedback-email" name="email" autocomplete="email">
+      </div>
+
+      <div class="feedback-field">
+        <label for="feedback-message">Сообщение</label>
+        <textarea id="feedback-message" name="message" required></textarea>
+      </div>
+
+      <div class="feedback-field">
+        <label for="feedback-file">Файл (скриншот и т.п., необязательно)</label>
+        <input type="file" id="feedback-file" name="attachment">
+      </div>
+
+      <button type="submit" id="feedback-submit-btn">Отправить</button>
+      <div id="feedback-status"></div>
+    </form>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -445,6 +529,52 @@
       }
       qrImg.style.display = "block";
       qrBtn.textContent = "Скрыть QR";
+    });
+  })();
+
+  // ---------------- Feedback form popup (independent of quest data loading) ----------------
+  (function setupFeedbackWidget(){
+    var overlay = document.getElementById("feedback-overlay");
+    var openBtn = document.getElementById("btn-feedback");
+    var closeBtn = document.getElementById("feedback-close-btn");
+    var form = document.getElementById("feedback-form");
+    var submitBtn = document.getElementById("feedback-submit-btn");
+    var status = document.getElementById("feedback-status");
+
+    openBtn.addEventListener("click", function(){ overlay.classList.add("open"); });
+    closeBtn.addEventListener("click", function(){ overlay.classList.remove("open"); });
+    overlay.addEventListener("click", function(e){ if(e.target === overlay) overlay.classList.remove("open"); });
+    document.addEventListener("keydown", function(e){ if(e.key === "Escape") overlay.classList.remove("open"); });
+
+    form.addEventListener("submit", function(e){
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Отправка…";
+      status.textContent = "";
+      status.className = "";
+
+      fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: {"Accept": "application/json"}
+      }).then(function(res){
+        if(res.ok){
+          status.textContent = "Спасибо, сообщение отправлено!";
+          status.className = "ok";
+          form.reset();
+        } else {
+          return res.json().then(function(data){
+            var msg = (data && data.errors && data.errors.length) ? data.errors.map(function(e){ return e.message; }).join(", ") : "Не удалось отправить.";
+            throw new Error(msg);
+          });
+        }
+      }).catch(function(err){
+        status.textContent = "Не удалось отправить: " + err.message + ". Попробуйте ещё раз.";
+        status.className = "err";
+      }).finally(function(){
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Отправить";
+      });
     });
   })();
 
