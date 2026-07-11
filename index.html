@@ -738,6 +738,7 @@
 
   var TRADER_ORDER = ["prapor", "therapist", "skier", "peacekeeper", "mechanic", "ragman", "jaeger", "fence", "ref"];
   var CARD_W = 250, GAP_Y = 26, LEVEL_GAP = 34, HEADER_H = 580;
+  var MIN_ZOOM = 0.04, MAX_ZOOM = 2.2;
   var ZONE_PAD = 26, ZONE_HEADER_H = 560;
   var WIKI_API = "https://escapefromtarkov.fandom.com/api.php";
   var layoutState = {}; // cached data needed to re-run layoutAndRender() when trader visibility changes
@@ -1554,7 +1555,7 @@
       var worldX = (mx - state.view.x) / state.view.scale;
       var worldY = (my - state.view.y) / state.view.scale;
       var delta = e.deltaY > 0 ? 0.9 : 1.1;
-      var newScale = Math.min(2.2, Math.max(0.15, state.view.scale * delta));
+      var newScale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, state.view.scale * delta));
       state.view.x = mx - worldX * newScale;
       state.view.y = my - worldY * newScale;
       state.view.scale = newScale;
@@ -1591,7 +1592,7 @@
       if(pinching && e.touches.length === 2){
         e.preventDefault();
         var dist = touchDist(e.touches[0], e.touches[1]);
-        var newScale = Math.min(2.2, Math.max(0.15, pinchStartScale * (dist / pinchStartDist)));
+        var newScale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchStartScale * (dist / pinchStartDist)));
         state.view.x = pinchMidX - pinchWorldX * newScale;
         state.view.y = pinchMidY - pinchWorldY * newScale;
         state.view.scale = newScale;
