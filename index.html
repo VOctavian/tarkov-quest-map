@@ -119,6 +119,15 @@
   }
   svg#lines{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;}
 
+  /* ---------- Simplified rendering when zoomed far out (perf) ---------- */
+  #world.simplified .qobjectives,
+  #world.simplified .qitems,
+  #world.simplified .qcard-foot,
+  #world.simplified .qtrader-avatar{display:none;}
+  #world.simplified .qcard{padding:6px 8px;}
+  #world.simplified .qcard-head{margin-bottom:0;}
+  #world.simplified svg#lines{display:none;}
+
   /* ---------- Trader zone (background band + header card) ---------- */
   .trader-zone{
     position:absolute;border-radius:20px;pointer-events:none;
@@ -1670,8 +1679,10 @@
   });
 
   // ---------------- Pan & Zoom ----------------
+  var SIMPLIFIED_ZOOM_THRESHOLD = 0.15;
   function applyView(){
     elWorld.style.transform = "translate(" + state.view.x + "px," + state.view.y + "px) scale(" + state.view.scale + ")";
+    elWorld.classList.toggle("simplified", state.view.scale < SIMPLIFIED_ZOOM_THRESHOLD);
   }
 
   var elTopbar = document.getElementById("topbar");
