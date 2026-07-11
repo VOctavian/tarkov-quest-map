@@ -1608,13 +1608,17 @@
     loadGuides().then(function(guides){
       guidesData = guides;
       var g = guides[taskId];
-      if(!g || g.status !== "ok"){
+      var ru = g && g.ru;
+      var useRu = langState.lang === "ru" && ru && ru.status === "ok";
+      var text = useRu ? ru.text : (g && g.text);
+      var hasGuide = !!text || (g && g.status === "ok");
+      if(!hasGuide){
         elGuideText.textContent = "";
         elGuideText.innerHTML = '<div id="guide-empty">' + escHtml(i18n("guideEmptyLabel")) + '</div>';
         return;
       }
-      elGuideText.textContent = g.text || "";
-      var images = g.images || [];
+      elGuideText.textContent = text || "";
+      var images = (g && g.images) || [];
       images.forEach(function(im, idx){
         var img = document.createElement("img");
         img.referrerPolicy = "no-referrer";
