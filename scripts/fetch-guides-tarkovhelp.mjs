@@ -72,6 +72,39 @@ async function buildTraderNameMap(slug){
   return byName;
 }
 
+// tarkov.help item-shopping tables (class "bb-table _items") list a build's parts as
+// pairs of rows: an icon+trader+price row, then a full-name row. Converts each pair to
+// a "• Name — Trader, Price ₽" line instead of dropping the table outright, since this
+// shopping guidance (where to buy each part) isn't shown anywhere else in the app.
+function extractShoppingList(tableHtml){
+  var names = [];
+  var nameRe = /class="item-name">([^<]+)<\/span>/g, nm;
+  while((nm = nameRe.exec(tableHtml))) names.push(decodeHtmlEntities(nm[1]));
+  if(!names.length) return null;
+
+  var traderBlocks = [];
+  var tdRe = /<td class="bb-table-trader[^>]*>([\s\S]*?)<\/td>/g, tdm;
+  while((tdm = tdRe.exec(tableHtml))){
+    var block = tdm[1];
+    var alts = [];
+    var altRe = /alt="([^"]*)"/g, am;
+    while((am = altRe.exec(block))) alts.push(am[1]);
+    var trader = alts.filter(function(a){ return a && a !== "wallet"; }).pop() || "";
+    var priceM = block.match(/([\d\s]+)\s*₽/);
+    var price = priceM ? priceM[1].replace(/\s+/g, "") + " ₽" : "";
+    traderBlocks.push({ trader: trader, price: price });
+  }
+
+  var lines = names.map(function(name, i){
+    var tb = traderBlocks[i] || {};
+    var parts = [name];
+    if(tb.trader) parts.push(tb.trader);
+    if(tb.price) parts.push(tb.price);
+    return "• " + parts.join(" — ");
+  });
+  return lines.join("\n");
+}
+
 function extractGuideFromHtml(html){
   if(!html) return null;
 
@@ -94,6 +127,10 @@ function extractGuideFromHtml(html){
     .replace(/<div class="bb-quest"[\s\S]*?<\/div>\s*<\/div>/g, function(block){
       var name = (block.match(/target="_parent"[^>]*>\s*([^<]+)/) || [])[1];
       return name ? decodeHtmlEntities(name.trim()) : "";
+    })
+    .replace(/<table\b[^>]*_items[^>]*>[\s\S]*?<\/table>/g, function(block){
+      var list = extractShoppingList(block);
+      return list ? "\n\nСписок покупок:\n" + list + "\n\n" : "";
     })
     .replace(/<table[\s\S]*?<\/table>/g, "")
     .replace(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/g, "")
@@ -126,16 +163,22 @@ async function main(){
     await sleep(REQUEST_DELAY_MS);
   }
 
+  // FORCE_MATCH lets a targeted re-run overwrite specific already-"ok" entries whose
+  // wiki-sourced guide is known to be thin (e.g. Gunsmith chain) with the fuller
+  // tarkov.help version, bypassing the normal gap-only skip.
+  var forceRe = process.env.FORCE_MATCH ? new RegExp(process.env.FORCE_MATCH, "i") : null;
   var gapTasks = tasks.filter(function(t){
     var g = guides[t.id];
-    return !g || !g.ru || g.ru.status !== "ok";
+    var isGap = !g || !g.ru || g.ru.status !== "ok";
+    return isGap || (forceRe && forceRe.test(t.name));
   });
   console.log("gap tasks: " + gapTasks.length + " / " + tasks.length);
 
   var fixed = 0, noMatch = 0, noGuide = 0, errors = 0, skipped = 0;
   for(var j = 0; j < gapTasks.length; j++){
     var t = gapTasks[j];
-    if(guides[t.id] && guides[t.id].ru && guides[t.id].ru.source === "tarkovhelp"){ skipped++; continue; }
+    var isForced = forceRe && forceRe.test(t.name);
+    if(!isForced && guides[t.id] && guides[t.id].ru && guides[t.id].ru.source === "tarkovhelp"){ skipped++; continue; }
 
     var slug = TRADER_NAME_TO_SLUG[t.trader.name];
     var map = slug && traderMaps[slug];
