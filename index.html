@@ -33,10 +33,28 @@
     z-index:50;
   }
   #topbar h1{font-size:16px;margin:0;color:var(--accent);white-space:nowrap;font-weight:600;}
+  #search-wrap{position:relative;}
   #search{
     background:var(--panel-2);border:1px solid var(--border);color:var(--text);
     padding:7px 10px;border-radius:6px;font-size:13px;min-width:220px;
   }
+  #search-dropdown{
+    position:absolute;top:calc(100% + 4px);left:0;min-width:280px;max-width:380px;
+    max-height:320px;overflow-y:auto;background:var(--panel);border:1px solid var(--border);
+    border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:60;display:none;
+  }
+  #search-dropdown.open{display:block;}
+  #search-dropdown .sd-item{
+    padding:8px 10px;font-size:13px;color:var(--text);cursor:pointer;
+    border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;
+  }
+  #search-dropdown .sd-item:last-child{border-bottom:none;}
+  #search-dropdown .sd-item img{width:18px;height:18px;border-radius:50%;object-fit:cover;flex:0 0 auto;}
+  #search-dropdown .sd-item .sd-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  #search-dropdown .sd-item .sd-trader{font-size:11px;color:var(--text-dim);flex:0 0 auto;}
+  #search-dropdown .sd-item:hover, #search-dropdown .sd-item.sel{background:var(--panel-2);}
+  #search-dropdown .sd-item.sel{border-left:2px solid var(--accent);}
+  #search-dropdown .sd-empty{padding:10px;font-size:13px;color:var(--text-dim);}
   #status{font-size:12px;color:var(--text-dim);}
   #level-filter{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim);white-space:nowrap;}
   #level-filter input{
@@ -206,8 +224,16 @@
   #modal .modal-objectives{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
   #modal .modal-objectives li{background:var(--panel-2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;}
   #modal .modal-requirements li.req-done{color:var(--accent-2);border-color:#2f4736;}
-  #modal .modal-link{cursor:pointer;transition:border-color .15s,background .15s;}
+  #modal .modal-link{
+    cursor:pointer;transition:border-color .15s,background .15s;
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+  }
   #modal .modal-link:hover{border-color:var(--accent);background:#252c26;}
+  #modal .modal-link-name{flex:1;min-width:0;}
+  #modal .modal-link-trader{
+    display:flex;align-items:center;gap:5px;flex:0 0 auto;color:var(--text-dim);font-size:12px;white-space:nowrap;
+  }
+  #modal .modal-link-trader img{width:18px;height:18px;border-radius:50%;object-fit:cover;flex:0 0 auto;}
   #modal .modal-kappa{
     display:flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:12px;
     background:rgba(199,161,90,.12);border:1px solid #7a5a24;border-radius:6px;padding:6px 10px;margin-bottom:10px;
@@ -235,7 +261,10 @@
 
 <div id="topbar">
   <h1>EFT · Карта заданий</h1>
-  <input id="search" type="text" placeholder="Поиск задания…">
+  <div id="search-wrap">
+    <input id="search" type="text" placeholder="Поиск задания…" autocomplete="off">
+    <div id="search-dropdown"></div>
+  </div>
   <div id="level-filter">
     <span>Уровень</span>
     <input id="level-from" type="number" min="1" placeholder="от">
@@ -949,13 +978,22 @@
   function openModal(t){
     var items = itemObjectives(t);
     var subTasks = nonItemObjectives(t);
+    function questLinkLi(taskId, name, trader, done){
+      var traderHtml = trader ?
+        '<span class="modal-link-trader"><img src="' + escAttr(trader.imageLink) + '" alt="" loading="lazy">' +
+          escHtml(trader.name) + '</span>' : "";
+      return '<li class="modal-link' + (done ? " req-done" : "") + '" data-goto="' + escAttr(taskId) + '">' +
+        '<span class="modal-link-name">' + (done ? "✓ " : "") + escHtml(name) + '</span>' +
+        traderHtml +
+      '</li>';
+    }
+
     var reqs = t.taskRequirements || [];
     var requirementsHtml = reqs.length ? reqs.map(function(req){
       var reqTask = req.task && state.byId[req.task.id];
       var name = reqTask ? reqTask.name : (req.task ? req.task.name : "Неизвестное задание");
       var done = req.task && state.completed[req.task.id];
-      return '<li class="modal-link' + (done ? " req-done" : "") + '" data-goto="' + escAttr(req.task ? req.task.id : "") + '">' +
-        (done ? "✓ " : "") + escHtml(name) + '</li>';
+      return questLinkLi(req.task ? req.task.id : "", name, reqTask ? reqTask.trader : null, done);
     }).join("") : "<li>Нет требуемых заданий</li>";
 
     var dependents = state.dependents[t.id] || [];
@@ -963,8 +1001,7 @@
       return a.name.localeCompare(b.name);
     }).map(function(dep){
       var done = state.completed[dep.id];
-      return '<li class="modal-link' + (done ? " req-done" : "") + '" data-goto="' + escAttr(dep.id) + '">' +
-        (done ? "✓ " : "") + escHtml(dep.name) + '</li>';
+      return questLinkLi(dep.id, dep.name, dep.trader, done);
     }).join("") : "<li>Нет заданий, зависящих от этого</li>";
 
     var itemsHtml = "";
@@ -1134,29 +1171,107 @@
 
   function setupSearch(){
     var input = document.getElementById("search");
+    var dropdown = document.getElementById("search-dropdown");
     var timer = null;
+    var matches = []; // [{id, name, traderName, traderImage, card}]
+    var selIndex = -1;
+
+    function clearOutline(){
+      document.querySelectorAll(".qcard").forEach(function(c){ c.style.outline = ""; });
+    }
+    function closeDropdown(){
+      dropdown.classList.remove("open");
+      dropdown.innerHTML = "";
+      matches = [];
+      selIndex = -1;
+    }
+    function centerOnCard(card){
+      var x = parseFloat(card.style.left), y = parseFloat(card.style.top);
+      var rect = elViewport.getBoundingClientRect();
+      state.view.scale = Math.max(state.view.scale, 0.7);
+      state.view.x = rect.width / 2 - (x + CARD_W / 2) * state.view.scale;
+      state.view.y = rect.height / 2 - (y + 60) * state.view.scale;
+      applyView();
+      card.classList.add("self-hl");
+      setTimeout(function(){ card.classList.remove("self-hl"); }, 1600);
+    }
+    function renderDropdown(){
+      dropdown.innerHTML = matches.map(function(m, i){
+        return '<div class="sd-item' + (i === selIndex ? " sel" : "") + '" data-idx="' + i + '">' +
+          '<img src="' + escAttr(m.traderImage) + '" alt="" loading="lazy">' +
+          '<span class="sd-name">' + escHtml(m.name) + '</span>' +
+          '<span class="sd-trader">' + escHtml(m.traderName) + '</span>' +
+        '</div>';
+      }).join("");
+      dropdown.classList.add("open");
+      var selEl = dropdown.querySelector(".sd-item.sel");
+      if(selEl) selEl.scrollIntoView({block: "nearest"});
+    }
+    function selectMatch(i){
+      var m = matches[i];
+      if(!m) return;
+      closeDropdown();
+      centerOnCard(m.card);
+    }
+
+    dropdown.addEventListener("click", function(e){
+      var item = e.target.closest(".sd-item[data-idx]");
+      if(!item) return;
+      selectMatch(parseInt(item.dataset.idx, 10));
+    });
+
     input.addEventListener("input", function(){
       clearTimeout(timer);
       timer = setTimeout(function(){
         var q = input.value.trim().toLowerCase();
-        document.querySelectorAll(".qcard").forEach(function(c){ c.style.outline = ""; });
+        clearOutline();
+        closeDropdown();
         if(!q) return;
-        var match = null;
+        var found = [];
         document.querySelectorAll(".qcard").forEach(function(c){
           if(c.dataset.name.indexOf(q) !== -1){
             c.style.outline = "2px solid var(--accent)";
-            if(!match) match = c;
+            var task = state.byId[c.dataset.taskId];
+            found.push({
+              id: c.dataset.taskId,
+              name: task ? task.name : c.dataset.name,
+              traderName: task ? task.trader.name : "",
+              traderImage: task ? task.trader.imageLink : "",
+              card: c
+            });
           }
         });
-        if(match){
-          var x = parseFloat(match.style.left), y = parseFloat(match.style.top);
-          var rect = elViewport.getBoundingClientRect();
-          state.view.scale = Math.max(state.view.scale, 0.7);
-          state.view.x = rect.width/2 - (x + CARD_W/2) * state.view.scale;
-          state.view.y = rect.height/2 - (y + 60) * state.view.scale;
-          applyView();
+        found.sort(function(a, b){ return a.name.localeCompare(b.name); });
+        if(found.length === 1){
+          centerOnCard(found[0].card);
+        } else if(found.length > 1){
+          matches = found;
+          selIndex = -1;
+          renderDropdown();
         }
-      }, 250);
+      }, 200);
+    });
+
+    input.addEventListener("keydown", function(e){
+      if(!dropdown.classList.contains("open") || !matches.length) return;
+      if(e.key === "ArrowDown"){
+        e.preventDefault();
+        selIndex = Math.min(matches.length - 1, selIndex + 1);
+        renderDropdown();
+      } else if(e.key === "ArrowUp"){
+        e.preventDefault();
+        selIndex = Math.max(0, selIndex - 1);
+        renderDropdown();
+      } else if(e.key === "Enter"){
+        e.preventDefault();
+        selectMatch(selIndex === -1 ? 0 : selIndex);
+      } else if(e.key === "Escape"){
+        closeDropdown();
+      }
+    });
+
+    document.addEventListener("click", function(e){
+      if(!e.target.closest("#search-wrap")) closeDropdown();
     });
   }
 
