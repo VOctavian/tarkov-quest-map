@@ -115,7 +115,6 @@
   #viewport.dragging{cursor:grabbing;}
   #world{
     position:absolute;top:0;left:0;transform-origin:0 0;
-    will-change:transform;
   }
   svg#lines{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;}
 
@@ -1683,6 +1682,11 @@
   function applyView(){
     elWorld.style.transform = "translate(" + state.view.x + "px," + state.view.y + "px) scale(" + state.view.scale + ")";
     elWorld.classList.toggle("simplified", state.view.scale < SIMPLIFIED_ZOOM_THRESHOLD);
+    // At extreme zoom-out, #world is a huge GPU-composited layer (tens of thousands of
+    // px) scaled down to a tiny fraction of its size. Chromium's tiled rasterizer can
+    // then paint that layer as visibly seamed/torn fragments. Dropping the GPU layer
+    // promotion below the threshold forces normal (non-tiled) painting instead.
+    elWorld.style.willChange = state.view.scale < SIMPLIFIED_ZOOM_THRESHOLD ? "auto" : "transform";
   }
 
   var elTopbar = document.getElementById("topbar");
