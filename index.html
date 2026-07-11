@@ -68,6 +68,17 @@
   }
   .topbtn:hover{border-color:var(--accent);}
   .topbtn.active{background:var(--accent);color:#1a1400;border-color:var(--accent);font-weight:700;}
+  .lang-switch{
+    display:flex;align-items:center;background:var(--panel-2);border:1px solid var(--border);
+    border-radius:20px;padding:2px;flex:0 0 auto;
+  }
+  .lang-switch .lang-opt{
+    background:transparent;border:none;color:var(--text-dim);cursor:pointer;
+    font-size:12px;font-weight:600;letter-spacing:.02em;padding:6px 12px;border-radius:18px;
+    transition:background .15s, color .15s;
+  }
+  .lang-switch .lang-opt:hover{color:var(--text);}
+  .lang-switch .lang-opt.active{background:var(--accent);color:#1a1400;}
   #legend{margin-left:auto;display:flex;gap:12px;align-items:center;font-size:12px;color:var(--text-dim);}
   .legend-item{display:flex;align-items:center;gap:5px;}
   .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
@@ -364,33 +375,37 @@
 </head>
 <body>
 
-<div id="loading"><div class="spinner"></div><div id="loading-text">Загрузка данных с tarkov.dev…</div></div>
+<div id="loading"><div class="spinner"></div><div id="loading-text" data-i18n="loadingText">Загрузка данных с tarkov.dev…</div></div>
 
 <div id="topbar">
-  <h1>EFT · Карта заданий</h1>
+  <div id="lang-toggle" class="lang-switch" data-i18n-title="langToggleTitle" title="Switch language">
+    <button type="button" class="lang-opt" data-lang="ru">RU</button>
+    <button type="button" class="lang-opt" data-lang="en">EN</button>
+  </div>
+  <h1 data-i18n="appTitle">EFT · Карта заданий</h1>
   <div id="search-wrap">
-    <input id="search" type="text" placeholder="Поиск задания…" autocomplete="off">
+    <input id="search" type="text" data-i18n-placeholder="searchPlaceholder" placeholder="Поиск задания…" autocomplete="off">
     <div id="search-dropdown"></div>
   </div>
   <div id="level-filter">
-    <span>Уровень</span>
-    <input id="level-from" type="number" min="1" placeholder="от">
+    <span data-i18n="levelLabel">Уровень</span>
+    <input id="level-from" type="number" min="1" data-i18n-placeholder="fromPlaceholder" placeholder="от">
     <span>—</span>
-    <input id="level-to" type="number" min="1" placeholder="до">
-    <button class="topbtn" id="btn-level-clear" title="Сбросить фильтр по уровню">✕</button>
+    <input id="level-to" type="number" min="1" data-i18n-placeholder="toPlaceholder" placeholder="до">
+    <button class="topbtn" id="btn-level-clear" data-i18n-title="levelClearTitle" title="Сбросить фильтр по уровню">✕</button>
   </div>
-  <button class="topbtn" id="btn-kappa-filter" title="Показать только задания, требуемые для Каппы">Нужны для каппы</button>
-  <button class="topbtn" id="btn-lightkeeper-filter" title="Показать только задания, необходимые для получения транспондера Смотрителя">Нужно для смотрителя</button>
-  <button class="topbtn" id="btn-active-filter" title="Показать только задания, доступные прямо сейчас (все требуемые задания уже выполнены)">Активные</button>
-  <button class="topbtn" id="btn-reset-view">Сбросить вид</button>
-  <button class="topbtn" id="btn-reset-progress">Сбросить прогресс</button>
-  <button class="topbtn" id="btn-export" title="Скачать прогресс в файл">Экспорт</button>
-  <button class="topbtn" id="btn-import" title="Загрузить прогресс из файла">Импорт</button>
+  <button class="topbtn" id="btn-kappa-filter" data-i18n-title="kappaFilterTitle" title="Показать только задания, требуемые для Каппы">Нужны для каппы</button>
+  <button class="topbtn" id="btn-lightkeeper-filter" data-i18n-title="lightkeeperFilterTitle" title="Показать только задания, необходимые для получения транспондера Смотрителя">Нужно для смотрителя</button>
+  <button class="topbtn" id="btn-active-filter" data-i18n-title="activeFilterTitle" data-i18n="activeFilterLabel" title="Показать только задания, доступные прямо сейчас (все требуемые задания уже выполнены)">Активные</button>
+  <button class="topbtn" id="btn-reset-view" data-i18n="resetViewLabel">Сбросить вид</button>
+  <button class="topbtn" id="btn-reset-progress" data-i18n="resetProgressLabel">Сбросить прогресс</button>
+  <button class="topbtn" id="btn-export" data-i18n-title="exportTitle" data-i18n="exportLabel" title="Скачать прогресс в файл">Экспорт</button>
+  <button class="topbtn" id="btn-import" data-i18n-title="importTitle" data-i18n="importLabel" title="Загрузить прогресс из файла">Импорт</button>
   <input type="file" id="import-file" accept="application/json" style="display:none">
   <span id="status"></span>
   <div id="legend">
-    <div class="legend-item"><span class="dot fir"></span> найдено в рейде</div>
-    <div class="legend-item"><span class="dot nofir"></span> не обязательно ФИР</div>
+    <div class="legend-item"><span class="dot fir"></span> <span data-i18n="legendFir">найдено в рейде</span></div>
+    <div class="legend-item"><span class="dot nofir"></span> <span data-i18n="legendNoFir">не обязательно ФИР</span></div>
   </div>
 </div>
 <div id="traderbar"></div>
@@ -405,19 +420,19 @@
   <div id="modal"></div>
 </div>
 
-<button id="btn-coffee" title="Поддержать разработчика">☕ Угостить кофе</button>
+<button id="btn-coffee" data-i18n-title="coffeeBtnTitle" data-i18n="coffeeBtnLabel" title="Поддержать разработчика">☕ Угостить кофе</button>
 <div id="coffee-overlay">
   <div id="coffee-modal">
-    <button class="coffee-close" id="coffee-close-btn">Закрыть ✕</button>
-    <h2>☕ Угостить кофе</h2>
-    <div class="coffee-intro">Если карта заданий пригодилась — можно поддержать монеткой. Спасибо!</div>
+    <button class="coffee-close" id="coffee-close-btn" data-i18n="closeLabel">Закрыть ✕</button>
+    <h2 data-i18n="coffeeBtnLabel">☕ Угостить кофе</h2>
+    <div class="coffee-intro" data-i18n="coffeeIntro">Если карта заданий пригодилась — можно поддержать монеткой. Спасибо!</div>
 
     <div class="coffee-method">
       <div class="coffee-method-label">Binance Pay ID</div>
       <div class="coffee-method-row">
         <div class="coffee-method-value" data-copy-value="155093026">155093026</div>
-        <button class="coffee-copy-btn">Копировать</button>
-        <button class="coffee-qr-btn" id="btn-binance-qr">QR-код</button>
+        <button class="coffee-copy-btn" data-i18n="copyLabel">Копировать</button>
+        <button class="coffee-qr-btn" id="btn-binance-qr" data-i18n="qrShowLabel">QR-код</button>
       </div>
       <img id="binance-qr-img" class="coffee-qr" alt="Binance Pay QR" style="display:none;">
     </div>
@@ -426,7 +441,7 @@
       <div class="coffee-method-label">USDT (TRC20)</div>
       <div class="coffee-method-row">
         <div class="coffee-method-value" data-copy-value="TNEiHy5bQmHmFBjfy4gtDPmfU8qDY3VSTk">TNEiHy5bQmHmFBjfy4gtDPmfU8qDY3VSTk</div>
-        <button class="coffee-copy-btn">Копировать</button>
+        <button class="coffee-copy-btn" data-i18n="copyLabel">Копировать</button>
       </div>
     </div>
 
@@ -434,46 +449,46 @@
       <div class="coffee-method-label">BTC</div>
       <div class="coffee-method-row">
         <div class="coffee-method-value" data-copy-value="16DGMk6p5TtLMoycR5BMmugPD1i2aU17oW">16DGMk6p5TtLMoycR5BMmugPD1i2aU17oW</div>
-        <button class="coffee-copy-btn">Копировать</button>
+        <button class="coffee-copy-btn" data-i18n="copyLabel">Копировать</button>
       </div>
     </div>
 
     <div class="coffee-method">
-      <div class="coffee-method-label">Boosty (карта)</div>
+      <div class="coffee-method-label" data-i18n="boostyLabel">Boosty (карта)</div>
       <div class="coffee-method-row">
         <div class="coffee-method-value" data-copy-value="https://boosty.to/mastermd/donate">boosty.to/mastermd/donate</div>
-        <a class="coffee-link-btn" href="https://boosty.to/mastermd/donate" target="_blank" rel="noopener noreferrer">Перейти ↗</a>
+        <a class="coffee-link-btn" href="https://boosty.to/mastermd/donate" target="_blank" rel="noopener noreferrer" data-i18n="openLinkLabel">Перейти ↗</a>
       </div>
     </div>
   </div>
 </div>
 
-<button id="btn-feedback" title="Сообщить об ошибке или предложить идею">✉️ Фидбэк</button>
+<button id="btn-feedback" data-i18n-title="feedbackBtnTitle" data-i18n="feedbackBtnLabel" title="Сообщить об ошибке или предложить идею">✉️ Фидбэк</button>
 <div id="feedback-overlay">
   <div id="feedback-modal">
-    <button class="feedback-close" id="feedback-close-btn">Закрыть ✕</button>
-    <h2>✉️ Фидбэк</h2>
-    <div class="feedback-intro">Нашли баг, не хватает функции или просто есть идея — напишите.</div>
+    <button class="feedback-close" id="feedback-close-btn" data-i18n="closeLabel">Закрыть ✕</button>
+    <h2 data-i18n="feedbackBtnLabel">✉️ Фидбэк</h2>
+    <div class="feedback-intro" data-i18n="feedbackIntro">Нашли баг, не хватает функции или просто есть идея — напишите.</div>
 
     <form id="feedback-form" action="https://formspree.io/f/xeeyjqjy" method="POST" enctype="multipart/form-data">
       <input type="text" name="_gotcha" class="feedback-hidden" tabindex="-1" autocomplete="off">
 
       <div class="feedback-field">
-        <label for="feedback-name">Имя (необязательно)</label>
+        <label for="feedback-name" data-i18n="feedbackNameLabel">Имя (необязательно)</label>
         <input type="text" id="feedback-name" name="name" autocomplete="name">
       </div>
 
       <div class="feedback-field">
-        <label for="feedback-email">Email (необязательно, чтобы ответить)</label>
+        <label for="feedback-email" data-i18n="feedbackEmailLabel">Email (необязательно, чтобы ответить)</label>
         <input type="email" id="feedback-email" name="email" autocomplete="email">
       </div>
 
       <div class="feedback-field">
-        <label for="feedback-message">Сообщение</label>
+        <label for="feedback-message" data-i18n="feedbackMessageLabel">Сообщение</label>
         <textarea id="feedback-message" name="message" required></textarea>
       </div>
 
-      <button type="submit" id="feedback-submit-btn">Отправить</button>
+      <button type="submit" id="feedback-submit-btn" data-i18n="sendLabel">Отправить</button>
       <div id="feedback-status"></div>
     </form>
   </div>
@@ -482,6 +497,109 @@
 <script>
 (function(){
   "use strict";
+
+  // ---------------- Localization ----------------
+  var LS_LANG = "tarkov_lang_v1";
+  var I18N = {
+    appTitle: {ru:"EFT · Карта заданий", en:"EFT · Quest Map"},
+    pageTitle: {ru:"Escape from Tarkov — Карта заданий", en:"Escape from Tarkov — Quest Map"},
+    loadingText: {ru:"Загрузка данных с tarkov.dev…", en:"Loading data from tarkov.dev…"},
+    searchPlaceholder: {ru:"Поиск задания…", en:"Search quest…"},
+    levelLabel: {ru:"Уровень", en:"Level"},
+    fromPlaceholder: {ru:"от", en:"from"},
+    toPlaceholder: {ru:"до", en:"to"},
+    levelClearTitle: {ru:"Сбросить фильтр по уровню", en:"Reset level filter"},
+    kappaFilterTitle: {ru:"Показать только задания, требуемые для Каппы", en:"Show only quests required for Kappa"},
+    lightkeeperFilterTitle: {ru:"Показать только задания, необходимые для получения транспондера Смотрителя", en:"Show only quests required for the Lightkeeper transponder"},
+    activeFilterTitle: {ru:"Показать только задания, доступные прямо сейчас (все требуемые задания уже выполнены)", en:"Show only quests available right now (all prerequisites already completed)"},
+    activeFilterLabel: {ru:"Активные", en:"Active"},
+    langToggleTitle: {ru:"Переключить язык", en:"Switch language"},
+    resetViewLabel: {ru:"Сбросить вид", en:"Reset view"},
+    resetProgressLabel: {ru:"Сбросить прогресс", en:"Reset progress"},
+    exportTitle: {ru:"Скачать прогресс в файл", en:"Download progress to a file"},
+    exportLabel: {ru:"Экспорт", en:"Export"},
+    importTitle: {ru:"Загрузить прогресс из файла", en:"Load progress from a file"},
+    importLabel: {ru:"Импорт", en:"Import"},
+    legendFir: {ru:"найдено в рейде", en:"found in raid"},
+    legendNoFir: {ru:"не обязательно ФИР", en:"FIR not required"},
+    coffeeBtnTitle: {ru:"Поддержать разработчика", en:"Support the developer"},
+    coffeeBtnLabel: {ru:"☕ Угостить кофе", en:"☕ Buy me a coffee"},
+    coffeeIntro: {ru:"Если карта заданий пригодилась — можно поддержать монеткой. Спасибо!", en:"If this quest map came in handy, you can support it with a coin. Thanks!"},
+    boostyLabel: {ru:"Boosty (карта)", en:"Boosty (card)"},
+    openLinkLabel: {ru:"Перейти ↗", en:"Open ↗"},
+    copyLabel: {ru:"Копировать", en:"Copy"},
+    copiedLabel: {ru:"Скопировано ✓", en:"Copied ✓"},
+    qrShowLabel: {ru:"QR-код", en:"QR code"},
+    qrHideLabel: {ru:"Скрыть QR", en:"Hide QR"},
+    closeLabel: {ru:"Закрыть ✕", en:"Close ✕"},
+    feedbackBtnTitle: {ru:"Сообщить об ошибке или предложить идею", en:"Report a bug or suggest an idea"},
+    feedbackBtnLabel: {ru:"✉️ Фидбэк", en:"✉️ Feedback"},
+    feedbackIntro: {ru:"Нашли баг, не хватает функции или просто есть идея — напишите.", en:"Found a bug, missing a feature, or just have an idea — let us know."},
+    feedbackNameLabel: {ru:"Имя (необязательно)", en:"Name (optional)"},
+    feedbackEmailLabel: {ru:"Email (необязательно, чтобы ответить)", en:"Email (optional, so we can reply)"},
+    feedbackMessageLabel: {ru:"Сообщение", en:"Message"},
+    sendLabel: {ru:"Отправить", en:"Send"},
+    sendingLabel: {ru:"Отправка…", en:"Sending…"},
+    feedbackSuccess: {ru:"Спасибо, сообщение отправлено!", en:"Thanks, your message has been sent!"},
+    feedbackGenericError: {ru:"Не удалось отправить.", en:"Failed to send."},
+    feedbackErrorPrefix: {ru:"Не удалось отправить: ", en:"Failed to send: "},
+    feedbackErrorSuffix: {ru:". Попробуйте ещё раз.", en:". Please try again."},
+    statusLine: {ru:"заданий · ", en:"quests · "},
+    statusTraders: {ru:"торговцев", en:"traders"},
+    kappaBadgeTitle: {ru:"Требуется для Каппы", en:"Required for Kappa"},
+    levelBadgePrefix: {ru:"Ур.", en:"Lvl"},
+    noItemsText: {ru:"Нет предметных требований", en:"No item requirements"},
+    detailsLabel: {ru:"Подробности", en:"Details"},
+    doneLabel: {ru:"Выполнено", en:"Completed"},
+    doneLabelChecked: {ru:"Выполнено ✓", en:"Completed ✓"},
+    firRequiredTitle: {ru:"Обязательно найдено в рейде", en:"Must be found in raid"},
+    firNotRequiredTitle: {ru:"Не обязательно ФИР", en:"FIR not required"},
+    unknownQuestLabel: {ru:"Неизвестное задание", en:"Unknown quest"},
+    noRequirementsLabel: {ru:"Нет требуемых заданий", en:"No required quests"},
+    noDependentsLabel: {ru:"Нет заданий, зависящих от этого", en:"No quests depend on this one"},
+    requiredItemsTitle: {ru:"Требуемые предметы", en:"Required items"},
+    kappaModalLabel: {ru:"κ Требуется для Каппы", en:"κ Required for Kappa"},
+    requiredLevelLabel: {ru:"требуемый уровень", en:"required level"},
+    openWikiLabel: {ru:"Открыть на вики ↗", en:"Open on wiki ↗"},
+    requiredQuestsTitle: {ru:"Требуемые задания", en:"Required quests"},
+    unlocksQuestsTitle: {ru:"Открывает задания", en:"Unlocks quests"},
+    questTextTitle: {ru:"Текст задания", en:"Quest text"},
+    noDescriptionLabel: {ru:"Описание отсутствует", en:"No description"},
+    resetProgressConfirm: {ru:"Сбросить весь прогресс (выполненные задания, подзадачи и счётчики предметов)?", en:"Reset all progress (completed quests, subtasks and item counters)?"},
+    importInvalidJson: {ru:"Не удалось прочитать файл: это не корректный JSON.", en:"Could not read the file: not valid JSON."},
+    importNotRecognized: {ru:"Файл не похож на экспорт прогресса этого приложения.", en:"This file doesn't look like a progress export from this app."},
+    importConfirm: {ru:"Импортировать прогресс из файла? Текущий прогресс в этом браузере будет перезаписан.", en:"Import progress from this file? Current progress in this browser will be overwritten."},
+    kappaFilterLabel: {ru:"Нужны для каппы", en:"Needed for Kappa"},
+    lightkeeperFilterLabel: {ru:"Нужно для смотрителя", en:"Needed for Lightkeeper"},
+    resolvingWikiText: {ru:"Определяем русские статьи вики…", en:"Loading quest data…"},
+    loadFailedPrefix: {ru:"Не удалось загрузить данные: ", en:"Failed to load data: "},
+    loadFailedSuffix: {ru:". Проверьте подключение к api.tarkov.dev и обновите страницу.", en:". Check your connection to api.tarkov.dev and reload the page."}
+  };
+  var langState = {lang: loadJSON(LS_LANG, "ru")};
+  function i18n(key){
+    var entry = I18N[key];
+    if(!entry) return key;
+    return entry[langState.lang] || entry.ru;
+  }
+  function applyStaticI18n(){
+    document.documentElement.lang = langState.lang;
+    document.title = i18n("pageTitle");
+    document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent = i18n(el.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(function(el){ el.placeholder = i18n(el.dataset.i18nPlaceholder); });
+    document.querySelectorAll("[data-i18n-title]").forEach(function(el){ el.title = i18n(el.dataset.i18nTitle); });
+    document.querySelectorAll("#lang-toggle .lang-opt").forEach(function(el){
+      el.classList.toggle("active", el.dataset.lang === langState.lang);
+    });
+  }
+  applyStaticI18n();
+  document.querySelectorAll("#lang-toggle .lang-opt").forEach(function(el){
+    el.addEventListener("click", function(){
+      if(el.dataset.lang === langState.lang) return;
+      langState.lang = el.dataset.lang;
+      saveJSON(LS_LANG, langState.lang);
+      location.reload();
+    });
+  });
 
   // ---------------- Coffee donate popup (independent of quest data loading) ----------------
   (function setupCoffeeWidget(){
@@ -498,7 +616,7 @@
         var value = btn.previousElementSibling.dataset.copyValue;
         var done = function(){
           var original = btn.textContent;
-          btn.textContent = "Скопировано ✓";
+          btn.textContent = i18n("copiedLabel");
           btn.classList.add("copied");
           setTimeout(function(){ btn.textContent = original; btn.classList.remove("copied"); }, 1500);
         };
@@ -516,14 +634,14 @@
       var showing = qrImg.style.display !== "none";
       if(showing){
         qrImg.style.display = "none";
-        qrBtn.textContent = "QR-код";
+        qrBtn.textContent = i18n("qrShowLabel");
         return;
       }
       if(!qrImg.src){
         qrImg.src = "binance_pay_qr.png";
       }
       qrImg.style.display = "block";
-      qrBtn.textContent = "Скрыть QR";
+      qrBtn.textContent = i18n("qrHideLabel");
     });
   })();
 
@@ -544,7 +662,7 @@
     form.addEventListener("submit", function(e){
       e.preventDefault();
       submitBtn.disabled = true;
-      submitBtn.textContent = "Отправка…";
+      submitBtn.textContent = i18n("sendingLabel");
       status.textContent = "";
       status.className = "";
 
@@ -554,28 +672,28 @@
         headers: {"Accept": "application/json"}
       }).then(function(res){
         if(res.ok){
-          status.textContent = "Спасибо, сообщение отправлено!";
+          status.textContent = i18n("feedbackSuccess");
           status.className = "ok";
           form.reset();
         } else {
           return res.json().then(function(data){
-            var msg = (data && data.errors && data.errors.length) ? data.errors.map(function(e){ return e.message; }).join(", ") : "Не удалось отправить.";
+            var msg = (data && data.errors && data.errors.length) ? data.errors.map(function(e){ return e.message; }).join(", ") : i18n("feedbackGenericError");
             throw new Error(msg);
           });
         }
       }).catch(function(err){
-        status.textContent = "Не удалось отправить: " + err.message + ". Попробуйте ещё раз.";
+        status.textContent = i18n("feedbackErrorPrefix") + err.message + i18n("feedbackErrorSuffix");
         status.className = "err";
       }).finally(function(){
         submitBtn.disabled = false;
-        submitBtn.textContent = "Отправить";
+        submitBtn.textContent = i18n("sendLabel");
       });
     });
   })();
 
   var API_URL = "https://api.tarkov.dev/graphql";
-  var QUERY = "query { tasks(lang: ru) { id name minPlayerLevel wikiLink kappaRequired lightkeeperRequired " +
-    "trader { id name imageLink } " +
+  var QUERY = "query { tasks(lang: " + langState.lang + ") { id name minPlayerLevel wikiLink kappaRequired lightkeeperRequired " +
+    "trader { id name normalizedName imageLink } " +
     "taskRequirements { task { id name } } " +
     "objectives { type description optional " +
       "... on TaskObjectiveItem { count foundInRaid item { id name iconLink } } " +
@@ -584,7 +702,7 @@
       "... on TaskObjectiveUseItem { count } " +
       "... on TaskObjectiveQuestItem { count } " +
       "... on TaskObjectiveExperience { count } " +
-    "} } maps(lang: ru) { name } }";
+    "} } maps(lang: " + langState.lang + ") { name } }";
 
   var LS_COMPLETED = "tarkov_quest_completed_v1";
   var LS_ITEMS = "tarkov_item_have_v1";
@@ -592,12 +710,13 @@
   var LS_VIEW = "tarkov_view_state_v1";
   var LS_OBJ_DONE = "tarkov_objective_done_v1";
 
-  var TRADER_ORDER = ["Прапор", "Терапевт", "Лыжник", "Миротворец", "Механик", "Барахольщик", "Егерь", "Скупщик", "Реф"];
+  var TRADER_ORDER = ["prapor", "therapist", "skier", "peacekeeper", "mechanic", "ragman", "jaeger", "fence", "ref"];
   var CARD_W = 250, GAP_Y = 26, LEVEL_GAP = 34, HEADER_H = 580;
   var ZONE_PAD = 26, ZONE_HEADER_H = 560;
   var WIKI_API = "https://escapefromtarkov.fandom.com/api.php";
 
   var state = {
+    lang: langState.lang,
     tasks: [],
     byId: {},
     completed: loadJSON(LS_COMPLETED, {}),
@@ -642,14 +761,19 @@
     if(json.errors) throw new Error(json.errors.map(function(e){return e.message;}).join("; "));
     state.tasks = json.data.tasks.filter(function(t){ return t.trader; });
     buildMapHighlightRegex((json.data.maps || []).map(function(m){ return m.name; }));
-    elLoadingText.textContent = "Определяем русские статьи вики…";
+    if(langState.lang !== "ru"){
+      state.tasks.forEach(function(t){ t.ruWikiLink = t.wikiLink; });
+      init();
+      return null;
+    }
+    elLoadingText.textContent = i18n("resolvingWikiText");
     return resolveRuWikiLinks(state.tasks);
   }).then(function(ruLinks){
+    if(!ruLinks) return;
     state.tasks.forEach(function(t){ t.ruWikiLink = ruLinks[t.id] || t.wikiLink; });
     init();
   }).catch(function(err){
-    elLoadingText.textContent = "Не удалось загрузить данные: " + err.message +
-      ". Проверьте подключение к api.tarkov.dev и обновите страницу.";
+    elLoadingText.textContent = i18n("loadFailedPrefix") + err.message + i18n("loadFailedSuffix");
   });
 
   // ---------------- Map name highlighting ----------------
@@ -733,12 +857,12 @@
 
     var traders = {};
     state.tasks.forEach(function(t){
-      if(!traders[t.trader.id]) traders[t.trader.id] = {id:t.trader.id, name:t.trader.name, imageLink:t.trader.imageLink, tasks:[]};
+      if(!traders[t.trader.id]) traders[t.trader.id] = {id:t.trader.id, name:t.trader.name, normalizedName:t.trader.normalizedName, imageLink:t.trader.imageLink, tasks:[]};
       traders[t.trader.id].tasks.push(t);
     });
     var traderList = Object.keys(traders).map(function(k){ return traders[k]; })
       .sort(function(a,b){
-        var ia = TRADER_ORDER.indexOf(a.name), ib = TRADER_ORDER.indexOf(b.name);
+        var ia = TRADER_ORDER.indexOf(a.normalizedName), ib = TRADER_ORDER.indexOf(b.normalizedName);
         if(ia === -1) ia = TRADER_ORDER.length;
         if(ib === -1) ib = TRADER_ORDER.length;
         if(ia !== ib) return ia - ib;
@@ -943,7 +1067,7 @@
 
   function updateStatusLabel(){
     var done = state.tasks.filter(function(t){ return state.completed[t.id]; }).length;
-    elStatus.textContent = done + "/" + state.tasks.length + " заданий · " + state.traderCount + " торговцев";
+    elStatus.textContent = done + "/" + state.tasks.length + " " + i18n("statusLine") + state.traderCount + " " + i18n("statusTraders");
   }
 
   function renderTraderBar(traderList){
@@ -1046,7 +1170,7 @@
         var kappaBadge = document.createElement("div");
         kappaBadge.className = "kappa-badge";
         kappaBadge.textContent = "κ";
-        kappaBadge.title = "Требуется для Каппы";
+        kappaBadge.title = i18n("kappaBadgeTitle");
         card.appendChild(kappaBadge);
       }
 
@@ -1055,7 +1179,7 @@
       head.innerHTML =
         '<img class="qtrader-avatar" src="' + escAttr(t.trader.imageLink) + '" alt="' + escAttr(t.trader.name) + '" title="' + escAttr(t.trader.name) + '" loading="lazy">' +
         '<div class="qname">' + escHtml(t.name) + '</div>' +
-        '<div class="qlevel">Ур. ' + (t.minPlayerLevel || 1) + '</div>';
+        '<div class="qlevel">' + i18n("levelBadgePrefix") + ' ' + (t.minPlayerLevel || 1) + '</div>';
       card.appendChild(head);
 
       var subTasks = nonItemObjectives(t);
@@ -1072,7 +1196,7 @@
       var itemsWrap = document.createElement("div");
       itemsWrap.className = "qitems";
       if(items.length === 0){
-        itemsWrap.innerHTML = '<div class="no-items">Нет предметных требований</div>';
+        itemsWrap.innerHTML = '<div class="no-items">' + escHtml(i18n("noItemsText")) + '</div>';
       } else {
         items.forEach(function(obj, idx){
           itemsWrap.appendChild(buildItemRow(obj, t.id + "::" + idx));
@@ -1084,17 +1208,17 @@
       foot.className = "qcard-foot";
       var btnDetails = document.createElement("button");
       btnDetails.className = "btn-details";
-      btnDetails.textContent = "Подробности";
+      btnDetails.textContent = i18n("detailsLabel");
       btnDetails.addEventListener("click", function(){ openModal(t); });
       var btnDone = document.createElement("button");
       btnDone.className = "btn-done" + (state.completed[t.id] ? " on" : "");
-      btnDone.textContent = state.completed[t.id] ? "Выполнено ✓" : "Выполнено";
+      btnDone.textContent = state.completed[t.id] ? i18n("doneLabelChecked") : i18n("doneLabel");
       btnDone.addEventListener("click", function(){
         state.completed[t.id] = !state.completed[t.id];
         saveJSON(LS_COMPLETED, state.completed);
         card.classList.toggle("completed", !!state.completed[t.id]);
         btnDone.classList.toggle("on", !!state.completed[t.id]);
-        btnDone.textContent = state.completed[t.id] ? "Выполнено ✓" : "Выполнено";
+        btnDone.textContent = state.completed[t.id] ? i18n("doneLabelChecked") : i18n("doneLabel");
         updateFilterProgressLabels();
         if(state.activeOnly) applyVisibility();
         updateTraderProgressLabels();
@@ -1118,7 +1242,7 @@
     imgWrap.innerHTML =
       '<img src="' + escAttr(obj.item.iconLink) + '" alt="' + escAttr(obj.item.name) + '" loading="lazy">' +
       '<span class="fir-badge ' + (obj.foundInRaid ? "yes" : "no") + '" title="' +
-        (obj.foundInRaid ? "Обязательно найдено в рейде" : "Не обязательно ФИР") + '">' +
+        escAttr(obj.foundInRaid ? i18n("firRequiredTitle") : i18n("firNotRequiredTitle")) + '">' +
         (obj.foundInRaid ? "✓" : "✕") + '</span>';
     row.appendChild(imgWrap);
 
@@ -1178,7 +1302,7 @@
     return String(s).replace(/[^a-zA-Z0-9_-]/g, function(c){ return "\\" + c; });
   }
 
-  var LINE_EXCLUDE_NAMES = ["Коллекционер"]; // quests so widely required that drawing their lines is just noise
+  var LINE_EXCLUDE_NAMES = ["Коллекционер", "Collector"]; // quests so widely required that drawing their lines is just noise
 
   function renderLines(positions){
     var svgns = "http://www.w3.org/2000/svg";
@@ -1262,10 +1386,10 @@
     var reqs = t.taskRequirements || [];
     var requirementsHtml = reqs.length ? reqs.map(function(req){
       var reqTask = req.task && state.byId[req.task.id];
-      var name = reqTask ? reqTask.name : (req.task ? req.task.name : "Неизвестное задание");
+      var name = reqTask ? reqTask.name : (req.task ? req.task.name : i18n("unknownQuestLabel"));
       var done = req.task && state.completed[req.task.id];
       return questLinkLi(req.task ? req.task.id : "", name, reqTask ? reqTask.trader : null, done);
-    }).join("") : "<li>Нет требуемых заданий</li>";
+    }).join("") : "<li>" + escHtml(i18n("noRequirementsLabel")) + "</li>";
 
     var dependents = state.dependents[t.id] || [];
     var dependentsHtml = dependents.length ? dependents.slice().sort(function(a,b){
@@ -1273,25 +1397,25 @@
     }).map(function(dep){
       var done = state.completed[dep.id];
       return questLinkLi(dep.id, dep.name, dep.trader, done);
-    }).join("") : "<li>Нет заданий, зависящих от этого</li>";
+    }).join("") : "<li>" + escHtml(i18n("noDependentsLabel")) + "</li>";
 
     var itemsHtml = "";
     if(items.length){
-      itemsHtml = '<div class="modal-section-title">Требуемые предметы</div><div id="modal-items"></div>';
+      itemsHtml = '<div class="modal-section-title">' + escHtml(i18n("requiredItemsTitle")) + '</div><div id="modal-items"></div>';
     }
     elModal.innerHTML =
-      '<button class="modal-close" id="modal-close-btn">Закрыть ✕</button>' +
+      '<button class="modal-close" id="modal-close-btn">' + escHtml(i18n("closeLabel")) + '</button>' +
       '<h2>' + escHtml(t.name) + '</h2>' +
-      (t.kappaRequired ? '<div class="modal-kappa">κ Требуется для Каппы</div>' : "") +
-      '<div class="modal-trader"><img src="' + escAttr(t.trader.imageLink) + '"><span>' + escHtml(t.trader.name) + ' · требуемый уровень ' + (t.minPlayerLevel||1) + '</span></div>' +
-      (t.ruWikiLink ? '<a class="wiki-link" href="' + escAttr(t.ruWikiLink) + '" target="_blank" rel="noopener noreferrer">Открыть на вики ↗</a>' : "") +
-      '<div class="modal-section-title">Требуемые задания</div>' +
+      (t.kappaRequired ? '<div class="modal-kappa">' + escHtml(i18n("kappaModalLabel")) + '</div>' : "") +
+      '<div class="modal-trader"><img src="' + escAttr(t.trader.imageLink) + '"><span>' + escHtml(t.trader.name) + ' · ' + escHtml(i18n("requiredLevelLabel")) + ' ' + (t.minPlayerLevel||1) + '</span></div>' +
+      (t.ruWikiLink ? '<a class="wiki-link" href="' + escAttr(t.ruWikiLink) + '" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("openWikiLabel")) + '</a>' : "") +
+      '<div class="modal-section-title">' + escHtml(i18n("requiredQuestsTitle")) + '</div>' +
       '<ul class="modal-objectives modal-requirements">' + requirementsHtml + '</ul>' +
-      '<div class="modal-section-title">Открывает задания</div>' +
+      '<div class="modal-section-title">' + escHtml(i18n("unlocksQuestsTitle")) + '</div>' +
       '<ul class="modal-objectives modal-requirements">' + dependentsHtml + '</ul>' +
-      '<div class="modal-section-title">Текст задания</div>' +
+      '<div class="modal-section-title">' + escHtml(i18n("questTextTitle")) + '</div>' +
       '<div class="qobjectives" id="modal-subtasks">' +
-        (subTasks.length ? "" : "<div class=\"no-items\">Описание отсутствует</div>") +
+        (subTasks.length ? "" : "<div class=\"no-items\">" + escHtml(i18n("noDescriptionLabel")) + "</div>") +
       '</div>' +
       itemsHtml;
 
@@ -1375,7 +1499,7 @@
       saveJSON(LS_VIEW, state.view);
     });
     document.getElementById("btn-reset-progress").addEventListener("click", function(){
-      if(!confirm("Сбросить весь прогресс (выполненные задания, подзадачи и счётчики предметов)?")) return;
+      if(!confirm(i18n("resetProgressConfirm"))) return;
       state.completed = {}; state.itemHave = {}; state.objectiveDone = {};
       saveJSON(LS_COMPLETED, state.completed);
       saveJSON(LS_ITEMS, state.itemHave);
@@ -1422,14 +1546,14 @@
         try{
           data = JSON.parse(reader.result);
         }catch(e){
-          alert("Не удалось прочитать файл: это не корректный JSON.");
+          alert(i18n("importInvalidJson"));
           return;
         }
         if(!data || typeof data !== "object"){
-          alert("Файл не похож на экспорт прогресса этого приложения.");
+          alert(i18n("importNotRecognized"));
           return;
         }
-        if(!confirm("Импортировать прогресс из файла? Текущий прогресс в этом браузере будет перезаписан.")) return;
+        if(!confirm(i18n("importConfirm"))) return;
         saveJSON(LS_COMPLETED, data.completed || {});
         saveJSON(LS_ITEMS, data.itemHave || {});
         saveJSON(LS_OBJ_DONE, data.objectiveDone || {});
@@ -1608,8 +1732,8 @@
     });
     var kappaBtn = document.getElementById("btn-kappa-filter");
     var lightkeeperBtn = document.getElementById("btn-lightkeeper-filter");
-    if(kappaBtn) kappaBtn.textContent = "Нужны для каппы " + kappaDone + "/" + kappaTotal;
-    if(lightkeeperBtn) lightkeeperBtn.textContent = "Нужно для смотрителя " + lkDone + "/" + lkTotal;
+    if(kappaBtn) kappaBtn.textContent = i18n("kappaFilterLabel") + " " + kappaDone + "/" + kappaTotal;
+    if(lightkeeperBtn) lightkeeperBtn.textContent = i18n("lightkeeperFilterLabel") + " " + lkDone + "/" + lkTotal;
   }
 
   // ---------------- Helpers ----------------
