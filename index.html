@@ -1617,6 +1617,7 @@
       var images = g.images || [];
       images.forEach(function(im, idx){
         var img = document.createElement("img");
+        img.referrerPolicy = "no-referrer";
         img.src = im.url;
         img.alt = im.alt || "";
         img.loading = "lazy";
@@ -1636,6 +1637,7 @@
   function showGalleryImage(){
     var im = galleryState.images[galleryState.idx];
     if(!im) return;
+    elGalleryImg.referrerPolicy = "no-referrer";
     elGalleryImg.src = im.url;
     elGalleryImg.alt = im.alt || "";
     elGalleryCaption.textContent = im.alt || "";
