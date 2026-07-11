@@ -1626,7 +1626,7 @@
         return;
       }
       elGuideText.textContent = text || "";
-      var images = (g && g.images) || [];
+      var images = (useRu && ru.images && ru.images.length) ? ru.images : ((g && g.images) || []);
       images.forEach(function(im, idx){
         var img = document.createElement("img");
         img.referrerPolicy = "no-referrer";

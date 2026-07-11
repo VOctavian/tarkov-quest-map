@@ -95,14 +95,14 @@ async function resolveRuTitles(tasks){
 }
 
 async function fetchRuGuideSection(title){
-  var secRes = await fetch(RU_WIKI_API + "?action=parse&page=" + encodeURIComponent(title) + "&format=json&prop=sections");
+  var secRes = await fetch(RU_WIKI_API + "?action=parse&redirects=1&page=" + encodeURIComponent(title) + "&format=json&prop=sections");
   var secJson = await secRes.json();
   if(!secJson.parse) return { status: "no-page" };
   var sec = secJson.parse.sections.find(function(s){ return SECTION_RE.test(String(s.line).trim()); });
   if(!sec) return { status: "no-section" };
 
   await sleep(REQUEST_DELAY_MS);
-  var htmlRes = await fetch(RU_WIKI_API + "?action=parse&page=" + encodeURIComponent(title) + "&format=json&prop=text&section=" + sec.index);
+  var htmlRes = await fetch(RU_WIKI_API + "?action=parse&redirects=1&page=" + encodeURIComponent(title) + "&format=json&prop=text&section=" + sec.index);
   var htmlJson = await htmlRes.json();
   if(!htmlJson.parse) return { status: "no-page" };
   return { status: "ok", html: htmlJson.parse.text["*"] };
