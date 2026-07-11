@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Escape from Tarkov — Карта заданий</title>
 <style>
   :root{
@@ -16,6 +16,8 @@
     --accent-2:#5aa17a;
     --danger:#b1533f;
     --card-w:250px;
+    --topbar-h:56px;
+    --traderbar-h:40px;
   }
   *{box-sizing:border-box;}
   html,body{
@@ -23,13 +25,14 @@
     background:var(--bg);color:var(--text);
     font-family:"Segoe UI",Roboto,Arial,sans-serif;
     overflow:hidden;
+    overscroll-behavior:none;
   }
 
   /* ---------- Top bar ---------- */
   #topbar{
-    position:fixed;top:0;left:0;right:0;height:56px;
+    position:fixed;top:0;left:0;right:0;min-height:56px;
     background:var(--panel);border-bottom:1px solid var(--border);
-    display:flex;align-items:center;gap:14px;padding:0 14px;
+    display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px;padding:8px 14px;
     z-index:50;
   }
   #topbar h1{font-size:16px;margin:0;color:var(--accent);white-space:nowrap;font-weight:600;}
@@ -87,9 +90,10 @@
 
   /* ---------- Trader filter drawer ---------- */
   #traderbar{
-    position:fixed;top:56px;left:0;right:0;height:40px;
+    position:fixed;top:var(--topbar-h);left:0;right:0;height:40px;
     background:var(--panel-2);border-bottom:1px solid var(--border);
     display:flex;align-items:center;gap:6px;padding:0 14px;overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
     z-index:49;
   }
   .trader-toggle{
@@ -104,8 +108,8 @@
 
   /* ---------- Viewport / world ---------- */
   #viewport{
-    position:absolute;top:96px;left:0;right:0;bottom:0;
-    overflow:hidden;cursor:grab;background:
+    position:absolute;top:calc(var(--topbar-h) + var(--traderbar-h));left:0;right:0;bottom:0;
+    overflow:hidden;cursor:grab;touch-action:none;background:
       radial-gradient(circle at 1px 1px, #23292544 1px, transparent 0) 0 0/28px 28px;
   }
   #viewport.dragging{cursor:grabbing;}
@@ -259,7 +263,7 @@
 
   /* ---------- Coffee donate button ---------- */
   #btn-coffee{
-    position:fixed;top:106px;right:14px;z-index:210;
+    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 10px);right:14px;z-index:210;
     display:flex;align-items:center;gap:7px;
     background:linear-gradient(135deg,#c7a15a,#8a6a2a);color:#1a1400;
     border:none;border-radius:22px;padding:9px 16px 9px 12px;
@@ -318,7 +322,7 @@
 
   /* ---------- Feedback button ---------- */
   #btn-feedback{
-    position:fixed;top:154px;right:14px;z-index:210;
+    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 58px);right:14px;z-index:210;
     display:flex;align-items:center;gap:7px;
     background:var(--panel-2);color:var(--text);
     border:1px solid var(--border);border-radius:22px;padding:8px 15px 8px 12px;
@@ -371,6 +375,28 @@
   #loading.hidden{display:none;}
   .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- Mobile / small screens ---------- */
+  @media (max-width:760px){
+    #topbar{gap:8px 8px;padding:8px 10px;}
+    #topbar h1{font-size:14px;order:1;}
+    .lang-switch{order:0;}
+    #search-wrap{order:2;flex:1 1 100%;}
+    #search{min-width:0;width:100%;}
+    #level-filter{order:3;font-size:11px;gap:4px;}
+    #level-filter input{width:40px;padding:6px 4px;}
+    .topbtn{padding:6px 9px;font-size:11.5px;order:3;}
+    #legend{display:none;}
+    #status{order:3;font-size:11px;}
+  }
+  @media (max-width:480px){
+    #btn-coffee, #btn-feedback{padding:8px 10px;font-size:0;gap:0;}
+    #btn-coffee::before{content:"☕";font-size:16px;}
+    #btn-feedback::before{content:"✉️";font-size:14px;}
+    .trader-toggle{padding:2px 7px 2px 2px;font-size:11px;gap:4px;}
+    .trader-toggle img{width:18px;height:18px;}
+    #modal, #coffee-modal, #feedback-modal{padding:14px;}
+  }
 </style>
 </head>
 <body>
@@ -1024,6 +1050,7 @@
     setupPanZoom();
     setupSearch();
     setupLevelFilter();
+    updateLayoutOffsets();
     applyView();
   }
 
@@ -1458,6 +1485,14 @@
     elWorld.style.transform = "translate(" + state.view.x + "px," + state.view.y + "px) scale(" + state.view.scale + ")";
   }
 
+  var elTopbar = document.getElementById("topbar");
+  function updateLayoutOffsets(){
+    document.documentElement.style.setProperty("--topbar-h", elTopbar.offsetHeight + "px");
+    document.documentElement.style.setProperty("--traderbar-h", elTraderbar.offsetHeight + "px");
+  }
+  updateLayoutOffsets();
+  window.addEventListener("resize", updateLayoutOffsets);
+
   function setupPanZoom(){
     var dragging = false, startX=0, startY=0, origX=0, origY=0;
 
@@ -1492,6 +1527,64 @@
       applyView();
       saveJSON(LS_VIEW, state.view);
     }, {passive:false});
+
+    // ---- touch: one-finger pan, two-finger pinch zoom ----
+    var pinching = false, pinchStartDist = 0, pinchStartScale = 1, pinchMidX = 0, pinchMidY = 0, pinchWorldX = 0, pinchWorldY = 0;
+    function touchDist(t0, t1){
+      return Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+    }
+    elViewport.addEventListener("touchstart", function(e){
+      if(e.target.closest(".qitem-progress") || e.target.closest(".qobjective") || e.target.closest("button") || e.target.tagName === "INPUT") return;
+      if(e.touches.length === 1){
+        dragging = true; pinching = false;
+        elViewport.classList.add("dragging");
+        startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+        origX = state.view.x; origY = state.view.y;
+      } else if(e.touches.length === 2){
+        e.preventDefault();
+        dragging = false; pinching = true;
+        elViewport.classList.remove("dragging");
+        var rect = elViewport.getBoundingClientRect();
+        pinchStartDist = touchDist(e.touches[0], e.touches[1]);
+        pinchStartScale = state.view.scale;
+        pinchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+        pinchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+        pinchWorldX = (pinchMidX - state.view.x) / state.view.scale;
+        pinchWorldY = (pinchMidY - state.view.y) / state.view.scale;
+      }
+    }, {passive:false});
+    elViewport.addEventListener("touchmove", function(e){
+      if(pinching && e.touches.length === 2){
+        e.preventDefault();
+        var dist = touchDist(e.touches[0], e.touches[1]);
+        var newScale = Math.min(2.2, Math.max(0.15, pinchStartScale * (dist / pinchStartDist)));
+        state.view.x = pinchMidX - pinchWorldX * newScale;
+        state.view.y = pinchMidY - pinchWorldY * newScale;
+        state.view.scale = newScale;
+        applyView();
+      } else if(dragging && e.touches.length === 1){
+        e.preventDefault();
+        state.view.x = origX + (e.touches[0].clientX - startX);
+        state.view.y = origY + (e.touches[0].clientY - startY);
+        applyView();
+      }
+    }, {passive:false});
+    elViewport.addEventListener("touchend", function(e){
+      if(pinching && e.touches.length < 2){
+        pinching = false;
+        saveJSON(LS_VIEW, state.view);
+      }
+      if(e.touches.length === 1){
+        dragging = true;
+        elViewport.classList.add("dragging");
+        startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+        origX = state.view.x; origY = state.view.y;
+      } else if(e.touches.length === 0){
+        if(dragging) saveJSON(LS_VIEW, state.view);
+        dragging = false;
+        elViewport.classList.remove("dragging");
+      }
+    });
 
     document.getElementById("btn-reset-view").addEventListener("click", function(){
       state.view = {x:40, y:20, scale:0.85};
