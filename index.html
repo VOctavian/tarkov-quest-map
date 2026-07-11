@@ -453,7 +453,7 @@
   <div id="feedback-modal">
     <button class="feedback-close" id="feedback-close-btn">Закрыть ✕</button>
     <h2>✉️ Фидбэк</h2>
-    <div class="feedback-intro">Нашли баг, не хватает функции или просто есть идея — напишите, можно с картинкой.</div>
+    <div class="feedback-intro">Нашли баг, не хватает функции или просто есть идея — напишите.</div>
 
     <form id="feedback-form" action="https://formspree.io/f/xeeyjqjy" method="POST" enctype="multipart/form-data">
       <input type="text" name="_gotcha" class="feedback-hidden" tabindex="-1" autocomplete="off">
@@ -471,11 +471,6 @@
       <div class="feedback-field">
         <label for="feedback-message">Сообщение</label>
         <textarea id="feedback-message" name="message" required></textarea>
-      </div>
-
-      <div class="feedback-field">
-        <label for="feedback-file">Файл (скриншот и т.п., необязательно)</label>
-        <input type="file" id="feedback-file" name="attachment">
       </div>
 
       <button type="submit" id="feedback-submit-btn">Отправить</button>
