@@ -694,7 +694,6 @@
     ttWikiLabel: {ru:"📖 Вики", en:"📖 Wiki"},
     ttTarkovHelpLabel: {ru:"❔ tarkov.help", en:"❔ tarkov.help"},
     ttMarketLabel: {ru:"💰 Цена / рынок", en:"💰 Price / market"},
-    ttTarkovMarketLabel: {ru:"🛒 Tarkov Market", en:"🛒 Tarkov Market"},
     requiredQuestsTitle: {ru:"Требуемые задания", en:"Required quests"},
     unlocksQuestsTitle: {ru:"Открывает задания", en:"Unlocks quests"},
     questTextTitle: {ru:"Текст задания", en:"Quest text"},
@@ -834,9 +833,10 @@
     "taskRequirements { task { id name } } " +
     "objectives { type description optional " +
       "... on TaskObjectiveItem { count foundInRaid item { id name iconLink image512pxLink wikiLink link normalizedName } } " +
-      "... on TaskObjectiveShoot { count targetNames } " +
+      "... on TaskObjectiveShoot { count targetNames usingWeapon { id name iconLink image512pxLink wikiLink link } usingWeaponMods { id name iconLink image512pxLink wikiLink link } } " +
       "... on TaskObjectiveExtract { count exitStatus zoneNames } " +
-      "... on TaskObjectiveUseItem { count } " +
+      "... on TaskObjectiveUseItem { count useAny { id name iconLink image512pxLink wikiLink link } } " +
+      "... on TaskObjectiveBuildItem { item { id name iconLink image512pxLink wikiLink link } containsAll { id name iconLink image512pxLink wikiLink link } } " +
       "... on TaskObjectiveQuestItem { count } " +
       "... on TaskObjectiveExperience { count } " +
     "} } maps(lang: " + langState.lang + ") { name } }";
@@ -902,7 +902,13 @@
     buildMapHighlightRegex((json.data.maps || []).map(function(m){ return m.name; }));
     var allItems = [];
     state.tasks.forEach(function(t){
-      (t.objectives || []).forEach(function(o){ if(o.item) allItems.push(o.item); });
+      (t.objectives || []).forEach(function(o){
+        if(o.item) allItems.push(o.item);
+        (o.usingWeapon || []).forEach(function(it){ allItems.push(it); });
+        (o.usingWeaponMods || []).forEach(function(group){ (group || []).forEach(function(it){ allItems.push(it); }); });
+        (o.useAny || []).forEach(function(it){ allItems.push(it); });
+        (o.containsAll || []).forEach(function(it){ allItems.push(it); });
+      });
     });
     buildItemHighlightRegex(allItems);
     if(langState.lang !== "ru"){
@@ -1757,7 +1763,6 @@
         '<div class="tt-links">' +
           (item.wikiLink ? '<a class="tt-link" href="' + escAttr(item.wikiLink) + '" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("ttWikiLabel")) + '</a>' : "") +
           (item.link ? '<a class="tt-link" href="' + escAttr(item.link) + '" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("ttMarketLabel")) + '</a>' : "") +
-          '<a class="tt-link" href="https://tarkov-market.com/" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("ttTarkovMarketLabel")) + '</a>' +
         '</div>';
       elItemTooltip.classList.add("open");
       positionItemTooltipNear(el);
