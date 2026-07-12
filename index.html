@@ -458,6 +458,18 @@
   .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
 
+  #offline-banner{
+    position:fixed;top:0;left:0;right:0;z-index:250;
+    background:#4a3a12;color:#ffd77a;border-bottom:1px solid #6b5420;
+    padding:8px 14px;font-size:13px;text-align:center;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+  }
+  #offline-banner.hidden{display:none;}
+  #offline-banner button{
+    background:none;border:1px solid #ffd77a;color:#ffd77a;border-radius:5px;
+    padding:2px 8px;font-size:12px;cursor:pointer;
+  }
+
   /* ---------- Mobile / small screens ---------- */
   @media (max-width:760px){
     #topbar{gap:8px 8px;padding:8px 10px;}
@@ -709,7 +721,9 @@
     guideEmptyLabel: {ru:"Гайд по этому заданию пока недоступен.", en:"No guide is available for this quest yet."},
     guideLoadingLabel: {ru:"Загрузка гайда…", en:"Loading guide…"},
     loadFailedPrefix: {ru:"Не удалось загрузить данные: ", en:"Failed to load data: "},
-    loadFailedSuffix: {ru:". Проверьте подключение к api.tarkov.dev и обновите страницу.", en:". Check your connection to api.tarkov.dev and reload the page."}
+    loadFailedSuffix: {ru:". Проверьте подключение к api.tarkov.dev и обновите страницу.", en:". Check your connection to api.tarkov.dev and reload the page."},
+    offlineCacheBannerPrefix: {ru:"⚠ Не удалось связаться с api.tarkov.dev — показаны сохранённые данные от ", en:"⚠ Could not reach api.tarkov.dev — showing cached data from "},
+    offlineCacheBannerClose: {ru:"Закрыть", en:"Dismiss"}
   };
   var langState = {lang: loadJSON(LS_LANG, "ru")};
   function i18n(key){
@@ -846,6 +860,7 @@
   var LS_TRADERS = "tarkov_trader_visible_v1";
   var LS_VIEW = "tarkov_view_state_v1";
   var LS_OBJ_DONE = "tarkov_objective_done_v1";
+  var LS_TASKS_CACHE = "tarkov_tasks_cache_v1";
 
   var TRADER_ORDER = ["prapor", "therapist", "skier", "peacekeeper", "mechanic", "ragman", "jaeger", "fence", "ref"];
   var CARD_W = 250, GAP_Y = 26, LEVEL_GAP = 34, HEADER_H = 580;
@@ -888,18 +903,33 @@
   var elLoading = document.getElementById("loading");
   var elLoadingText = document.getElementById("loading-text");
 
-  // ---------------- Fetch data ----------------
-  fetch(API_URL, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({query: QUERY})
-  }).then(function(r){
-    if(!r.ok) throw new Error("HTTP " + r.status);
-    return r.json();
-  }).then(function(json){
-    if(json.errors) throw new Error(json.errors.map(function(e){return e.message;}).join("; "));
-    state.tasks = json.data.tasks.filter(function(t){ return t.trader; });
-    buildMapHighlightRegex((json.data.maps || []).map(function(m){ return m.name; }));
+  // ---------------- Fetch data (with localStorage fallback cache) ----------------
+  function tasksCacheKey(){ return LS_TASKS_CACHE + "_" + langState.lang; }
+  function loadTasksCache(){ return loadJSON(tasksCacheKey(), null); }
+  function saveTasksCache(data){
+    try{ saveJSON(tasksCacheKey(), { savedAt: Date.now(), data: data }); }catch(e){}
+  }
+  function showOfflineBanner(savedAt){
+    var banner = document.getElementById("offline-banner");
+    if(!banner){
+      banner = document.createElement("div");
+      banner.id = "offline-banner";
+      var msg = document.createElement("span");
+      msg.id = "offline-banner-msg";
+      var closeBtn = document.createElement("button");
+      closeBtn.textContent = i18n("offlineCacheBannerClose");
+      closeBtn.addEventListener("click", function(){ banner.classList.add("hidden"); });
+      banner.appendChild(msg);
+      banner.appendChild(closeBtn);
+      document.body.appendChild(banner);
+    }
+    var dateStr = new Date(savedAt).toLocaleString(langState.lang === "ru" ? "ru-RU" : "en-US");
+    banner.querySelector("#offline-banner-msg").textContent = i18n("offlineCacheBannerPrefix") + dateStr;
+    banner.classList.remove("hidden");
+  }
+  function applyTasksData(data){
+    state.tasks = data.tasks.filter(function(t){ return t.trader; });
+    buildMapHighlightRegex((data.maps || []).map(function(m){ return m.name; }));
     var allItems = [];
     state.tasks.forEach(function(t){
       (t.objectives || []).forEach(function(o){
@@ -914,15 +944,32 @@
     if(langState.lang !== "ru"){
       state.tasks.forEach(function(t){ t.ruWikiLink = t.wikiLink; });
       init();
-      return null;
+      return;
     }
     elLoadingText.textContent = i18n("resolvingWikiText");
-    return resolveRuWikiLinks(state.tasks);
-  }).then(function(ruLinks){
-    if(!ruLinks) return;
-    state.tasks.forEach(function(t){ t.ruWikiLink = ruLinks[t.id] || t.wikiLink; });
-    init();
+    resolveRuWikiLinks(state.tasks).then(function(ruLinks){
+      state.tasks.forEach(function(t){ t.ruWikiLink = (ruLinks && ruLinks[t.id]) || t.wikiLink; });
+      init();
+    });
+  }
+  fetch(API_URL, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({query: QUERY})
+  }).then(function(r){
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function(json){
+    if(json.errors) throw new Error(json.errors.map(function(e){return e.message;}).join("; "));
+    saveTasksCache(json.data);
+    applyTasksData(json.data);
   }).catch(function(err){
+    var cached = loadTasksCache();
+    if(cached && cached.data){
+      showOfflineBanner(cached.savedAt);
+      applyTasksData(cached.data);
+      return;
+    }
     elLoadingText.textContent = i18n("loadFailedPrefix") + err.message + i18n("loadFailedSuffix");
   });
 
