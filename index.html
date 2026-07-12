@@ -189,6 +189,7 @@
   .map-hl{color:var(--accent);font-weight:600;background:rgba(199,161,90,.15);border-radius:3px;padding:0 2px;}
   .faction-usec{color:#4a9eff;font-weight:700;background:rgba(74,158,255,.15);border-radius:3px;padding:0 2px;}
   .faction-bear{color:var(--accent-2);font-weight:700;background:rgba(90,161,122,.15);border-radius:3px;padding:0 2px;}
+  .item-hl{color:#7fd0e0;font-weight:600;background:rgba(127,208,224,.12);border-radius:3px;padding:0 2px;cursor:help;border-bottom:1px dashed rgba(127,208,224,.5);}
   .qlevel{
     flex:0 0 auto;background:#2b241a;color:var(--accent);border:1px solid #45391f;
     border-radius:5px;padding:1px 6px;font-size:11px;white-space:nowrap;
@@ -268,6 +269,23 @@
   #modal-items{display:flex;flex-direction:column;gap:8px;}
   #modal-items .qitem{padding:6px 8px;}
   #modal a.wiki-link{color:var(--accent);font-size:12px;}
+  #modal .modal-links{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+
+  /* ---------- Item hover tooltip ---------- */
+  .qitem-name, .qitem-imgwrap img{cursor:help;}
+  #item-tooltip{
+    position:fixed;z-index:300;display:none;
+    background:var(--panel);border:1px solid var(--border);border-radius:8px;
+    box-shadow:0 6px 20px rgba(0,0,0,.5);padding:10px;width:200px;
+  }
+  #item-tooltip.open{display:block;}
+  #item-tooltip img.tt-img{width:100%;height:110px;object-fit:contain;background:#111;border-radius:6px;border:1px solid var(--border);margin-bottom:8px;}
+  #item-tooltip .tt-name{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:8px;}
+  #item-tooltip .tt-links{display:flex;flex-direction:column;gap:5px;}
+  #item-tooltip .tt-link{
+    display:flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);
+    background:var(--panel-2);border:1px solid var(--border);border-radius:5px;padding:4px 7px;
+  }
   #modal-guide-btn{
     display:inline-block;margin-left:10px;background:var(--panel-2);border:1px solid var(--border);
     color:var(--text);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;
@@ -510,6 +528,8 @@
   <div id="modal"></div>
 </div>
 
+<div id="item-tooltip"></div>
+
 <div id="guide-overlay">
   <div id="guide-modal">
     <button class="guide-close" id="guide-close-btn" data-i18n="closeLabel">Закрыть ✕</button>
@@ -670,6 +690,11 @@
     kappaModalLabel: {ru:"κ Требуется для Каппы", en:"κ Required for Kappa"},
     requiredLevelLabel: {ru:"требуемый уровень", en:"required level"},
     openWikiLabel: {ru:"Открыть на вики ↗", en:"Open on wiki ↗"},
+    openTarkovHelpLabel: {ru:"Открыть на tarkov.help ↗", en:"Open on tarkov.help ↗"},
+    ttWikiLabel: {ru:"📖 Вики", en:"📖 Wiki"},
+    ttTarkovHelpLabel: {ru:"❔ tarkov.help", en:"❔ tarkov.help"},
+    ttMarketLabel: {ru:"💰 Цена / рынок", en:"💰 Price / market"},
+    ttTarkovMarketLabel: {ru:"🛒 Tarkov Market", en:"🛒 Tarkov Market"},
     requiredQuestsTitle: {ru:"Требуемые задания", en:"Required quests"},
     unlocksQuestsTitle: {ru:"Открывает задания", en:"Unlocks quests"},
     questTextTitle: {ru:"Текст задания", en:"Quest text"},
@@ -808,7 +833,7 @@
     "trader { id name normalizedName imageLink } " +
     "taskRequirements { task { id name } } " +
     "objectives { type description optional " +
-      "... on TaskObjectiveItem { count foundInRaid item { id name iconLink } } " +
+      "... on TaskObjectiveItem { count foundInRaid item { id name iconLink image512pxLink wikiLink link normalizedName } } " +
       "... on TaskObjectiveShoot { count targetNames } " +
       "... on TaskObjectiveExtract { count exitStatus zoneNames } " +
       "... on TaskObjectiveUseItem { count } " +
@@ -875,6 +900,11 @@
     if(json.errors) throw new Error(json.errors.map(function(e){return e.message;}).join("; "));
     state.tasks = json.data.tasks.filter(function(t){ return t.trader; });
     buildMapHighlightRegex((json.data.maps || []).map(function(m){ return m.name; }));
+    var allItems = [];
+    state.tasks.forEach(function(t){
+      (t.objectives || []).forEach(function(o){ if(o.item) allItems.push(o.item); });
+    });
+    buildItemHighlightRegex(allItems);
     if(langState.lang !== "ru"){
       state.tasks.forEach(function(t){ t.ruWikiLink = t.wikiLink; });
       init();
@@ -900,9 +930,42 @@
     mapHighlightRegex = new RegExp("(" + escaped.join("|") + ")", "g");
   }
   var FACTION_REGEX = /\b(USEC|BEAR)\b/g;
+
+  // ---------------- Item name highlighting (guide text + subtask/objective text) ----------------
+  var itemHighlightRegex = null;
+  var escapedItemNameToId = {};
+  var itemsById = {};
+  function buildItemHighlightRegex(items){
+    items.forEach(function(it){
+      if(!it || !it.id || !it.name) return;
+      itemsById[it.id] = it;
+      var escName = escHtml(it.name);
+      if(!escapedItemNameToId[escName]) escapedItemNameToId[escName] = it.id;
+    });
+    var names = Object.keys(escapedItemNameToId).filter(Boolean).sort(function(a, b){ return b.length - a.length; });
+    if(!names.length) return;
+    var escaped = names.map(function(n){ return n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); });
+    itemHighlightRegex = new RegExp("(" + escaped.join("|") + ")", "g");
+  }
+  function highlightItemsInEscapedHtml(escapedHtml){
+    if(!itemHighlightRegex) return escapedHtml;
+    return escapedHtml.replace(itemHighlightRegex, function(m){
+      var id = escapedItemNameToId[m];
+      return '<span class="item-hl" data-item-id="' + escAttr(id) + '">' + m + '</span>';
+    });
+  }
+  function attachItemTooltipsWithin(container){
+    if(!container) return;
+    container.querySelectorAll(".item-hl").forEach(function(span){
+      var item = itemsById[span.dataset.itemId];
+      if(item) attachItemTooltip(span, item);
+    });
+  }
+
   function highlightMapsHtml(text){
     var escaped = escHtml(text);
     if(!escaped) return escaped;
+    escaped = highlightItemsInEscapedHtml(escaped);
     if(mapHighlightRegex) escaped = escaped.replace(mapHighlightRegex, '<span class="map-hl">$1</span>');
     escaped = escaped.replace(FACTION_REGEX, function(m, faction){
       return '<span class="faction-' + faction.toLowerCase() + '">' + faction + '</span>';
@@ -1302,6 +1365,7 @@
     var text = document.createElement("span");
     var label = (obj.description || "") + objectiveCountSuffix(obj);
     text.innerHTML = highlightMapsHtml(label);
+    attachItemTooltipsWithin(text);
     row.appendChild(checkbox);
     row.appendChild(text);
     return row;
@@ -1392,6 +1456,7 @@
       '<span class="fir-badge ' + (obj.foundInRaid ? "yes" : "no") + '" title="' +
         escAttr(obj.foundInRaid ? i18n("firRequiredTitle") : i18n("firNotRequiredTitle")) + '">' +
         (obj.foundInRaid ? "✓" : "✕") + '</span>';
+    attachItemTooltip(imgWrap.querySelector("img"), obj.item);
     row.appendChild(imgWrap);
 
     var info = document.createElement("div");
@@ -1401,6 +1466,8 @@
     var label = (obj.description && obj.description.trim()) ? obj.description.trim() : obj.item.name;
     nameDiv.innerHTML = highlightMapsHtml(label);
     nameDiv.title = label;
+    attachItemTooltip(nameDiv, obj.item);
+    attachItemTooltipsWithin(nameDiv);
     info.appendChild(nameDiv);
 
     var prog = document.createElement("div");
@@ -1556,7 +1623,9 @@
       '<h2>' + escHtml(t.name) + '</h2>' +
       (t.kappaRequired ? '<div class="modal-kappa">' + escHtml(i18n("kappaModalLabel")) + '</div>' : "") +
       '<div class="modal-trader"><img src="' + escAttr(t.trader.imageLink) + '"><span>' + escHtml(t.trader.name) + ' · ' + escHtml(i18n("requiredLevelLabel")) + ' ' + (t.minPlayerLevel||1) + '</span></div>' +
-      (t.ruWikiLink ? '<a class="wiki-link" href="' + escAttr(t.ruWikiLink) + '" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("openWikiLabel")) + '</a>' : "") +
+      '<div class="modal-links" id="modal-links">' +
+        (t.ruWikiLink ? '<a class="wiki-link" href="' + escAttr(t.ruWikiLink) + '" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("openWikiLabel")) + '</a>' : "") +
+      '</div>' +
       '<button type="button" id="modal-guide-btn" data-task-id="' + escAttr(t.id) + '">' + escHtml(i18n("guideBtnLabel")) + '</button>' +
       '<div class="modal-section-title">' + escHtml(i18n("requiredQuestsTitle")) + '</div>' +
       '<ul class="modal-objectives modal-requirements">' + requirementsHtml + '</ul>' +
@@ -1583,6 +1652,22 @@
     document.getElementById("modal-close-btn").addEventListener("click", closeModal);
     document.getElementById("modal-guide-btn").addEventListener("click", function(){ openGuide(t.id); });
     elOverlay.classList.add("open");
+
+    loadGuides().then(function(guides){
+      if(!elOverlay.classList.contains("open")) return;
+      var linksWrap = document.getElementById("modal-links");
+      if(!linksWrap) return;
+      var g = guides[t.id];
+      if(g && g.tarkovHelpUrl){
+        var a = document.createElement("a");
+        a.className = "wiki-link";
+        a.href = g.tarkovHelpUrl;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = i18n("openTarkovHelpLabel");
+        linksWrap.appendChild(a);
+      }
+    });
   }
 
   function focusOnTask(taskId){
@@ -1617,6 +1702,85 @@
     return guidesPromise;
   }
 
+  // ---------------- Item hover tooltip ----------------
+  var itemLinksPromise = null;
+  function loadItemLinks(){
+    if(!itemLinksPromise){
+      itemLinksPromise = fetch("tarkovhelp-item-links.json", { cache: "no-cache" }).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    }
+    return itemLinksPromise;
+  }
+  loadItemLinks();
+
+  var elItemTooltip = document.getElementById("item-tooltip");
+  var itemTooltipToken = 0;
+  var itemTooltipHideTimer = null;
+  var ITEM_TOOLTIP_HIDE_DELAY = 200;
+
+  function positionItemTooltipNear(anchorEl){
+    var pad = 8;
+    var r = anchorEl.getBoundingClientRect();
+    var w = elItemTooltip.offsetWidth || 200;
+    var h = elItemTooltip.offsetHeight || 140;
+    var left = r.right + pad;
+    var top = r.top;
+    if(left + w > window.innerWidth) left = r.left - w - pad;
+    if(left < 0) left = Math.max(0, r.left);
+    if(top + h > window.innerHeight) top = window.innerHeight - h - pad;
+    if(top < 0) top = 0;
+    elItemTooltip.style.left = left + "px";
+    elItemTooltip.style.top = top + "px";
+  }
+
+  function cancelItemTooltipHide(){
+    if(itemTooltipHideTimer){ clearTimeout(itemTooltipHideTimer); itemTooltipHideTimer = null; }
+  }
+  function scheduleItemTooltipHide(){
+    cancelItemTooltipHide();
+    itemTooltipHideTimer = setTimeout(function(){
+      itemTooltipToken++;
+      elItemTooltip.classList.remove("open");
+    }, ITEM_TOOLTIP_HIDE_DELAY);
+  }
+
+  elItemTooltip.addEventListener("mouseenter", cancelItemTooltipHide);
+  elItemTooltip.addEventListener("mouseleave", scheduleItemTooltipHide);
+
+  function attachItemTooltip(el, item){
+    if(!el || !item) return;
+    el.addEventListener("mouseenter", function(){
+      cancelItemTooltipHide();
+      var token = ++itemTooltipToken;
+      elItemTooltip.innerHTML =
+        (item.image512pxLink ? '<img class="tt-img" src="' + escAttr(item.image512pxLink) + '" alt="">' : "") +
+        '<div class="tt-name">' + escHtml(item.name) + '</div>' +
+        '<div class="tt-links">' +
+          (item.wikiLink ? '<a class="tt-link" href="' + escAttr(item.wikiLink) + '" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("ttWikiLabel")) + '</a>' : "") +
+          (item.link ? '<a class="tt-link" href="' + escAttr(item.link) + '" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("ttMarketLabel")) + '</a>' : "") +
+          '<a class="tt-link" href="https://tarkov-market.com/" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("ttTarkovMarketLabel")) + '</a>' +
+        '</div>';
+      elItemTooltip.classList.add("open");
+      positionItemTooltipNear(el);
+
+      loadItemLinks().then(function(links){
+        if(token !== itemTooltipToken) return;
+        var slug = links[item.id];
+        if(!slug) return;
+        var linksWrap = elItemTooltip.querySelector(".tt-links");
+        if(!linksWrap) return;
+        var a = document.createElement("a");
+        a.className = "tt-link";
+        a.href = "https://tarkov.help/ru/item/" + slug;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = i18n("ttTarkovHelpLabel");
+        linksWrap.insertBefore(a, linksWrap.children[1] || null);
+        positionItemTooltipNear(el);
+      });
+    });
+    el.addEventListener("mouseleave", scheduleItemTooltipHide);
+  }
+
   function openGuide(taskId){
     elGuideText.textContent = "";
     elGuideImages.innerHTML = "";
@@ -1634,7 +1798,8 @@
         elGuideText.innerHTML = '<div id="guide-empty">' + escHtml(i18n("guideEmptyLabel")) + '</div>';
         return;
       }
-      elGuideText.textContent = text || "";
+      elGuideText.innerHTML = highlightMapsHtml(text || "");
+      attachItemTooltipsWithin(elGuideText);
       var images = (useRu && ru.images && ru.images.length) ? ru.images : ((g && g.images) || []);
       images.forEach(function(im, idx){
         var img = document.createElement("img");
