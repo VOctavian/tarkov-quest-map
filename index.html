@@ -65,6 +65,12 @@
     padding:7px 6px;border-radius:6px;font-size:13px;width:52px;text-align:center;
   }
   #level-filter #btn-level-clear{padding:5px 8px;font-size:12px;line-height:1;}
+  #player-level-control{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim);white-space:nowrap;}
+  #player-level-control button{padding:5px 8px;font-size:14px;line-height:1;}
+  #player-level-input{
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    padding:7px 6px;border-radius:6px;font-size:13px;width:44px;text-align:center;
+  }
   .topbtn{
     background:var(--panel-2);border:1px solid var(--border);color:var(--text);
     padding:7px 12px;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap;
@@ -229,6 +235,10 @@
   .qcard-foot .btn-details:hover{border-color:var(--accent);}
   .qcard-foot .btn-done{border-color:#2f4736;}
   .qcard-foot .btn-done.on{background:var(--accent-2);color:#0e1210;font-weight:600;}
+  .qcard-foot .btn-untrack{border-color:#5a3a3a;}
+  .qcard-foot .btn-untrack:hover{border-color:var(--danger);color:var(--danger);}
+  .qcard-foot .btn-untrack.on{background:var(--danger);color:#fff;font-weight:600;border-color:var(--danger);}
+  .qcard.untracked{opacity:.55;}
   .no-items{color:var(--text-dim);font-size:11px;font-style:italic;}
 
   /* ---------- Modal ---------- */
@@ -291,6 +301,18 @@
     color:var(--text);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;
   }
   #modal-guide-btn:hover{border-color:var(--accent);color:var(--accent);}
+  #modal-done-btn{
+    display:inline-block;margin-left:10px;background:var(--panel-2);border:1px solid var(--border);
+    color:var(--text);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;
+  }
+  #modal-done-btn:hover{border-color:var(--accent-2);color:var(--accent-2);}
+  #modal-done-btn.on{background:var(--accent-2);color:#0e1210;font-weight:600;border-color:var(--accent-2);}
+  #modal-untrack-btn{
+    display:inline-block;margin-left:10px;background:var(--panel-2);border:1px solid var(--border);
+    color:var(--text);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;
+  }
+  #modal-untrack-btn:hover{border-color:var(--danger);color:var(--danger);}
+  #modal-untrack-btn.on{background:var(--danger);color:#fff;font-weight:600;border-color:var(--danger);}
 
   /* ---------- Guide popup ---------- */
   #guide-overlay{
@@ -450,6 +472,111 @@
   #feedback-status.err{color:var(--danger);}
   .feedback-hidden{position:absolute;left:-9999px;}
 
+  /* ---------- Active quests side panel ---------- */
+  #btn-active-panel{
+    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 10px);left:14px;z-index:210;
+    display:flex;align-items:center;gap:7px;
+    background:var(--panel-2);color:var(--text);
+    border:1px solid var(--border);border-radius:22px;padding:8px 15px 8px 12px;
+    font-size:13px;font-weight:600;cursor:pointer;
+    box-shadow:0 3px 10px rgba(0,0,0,.4);
+  }
+  #btn-active-panel:hover{border-color:var(--accent);color:var(--accent);}
+  #btn-active-panel.active{background:var(--accent);color:#1a1400;border-color:var(--accent);}
+
+  #active-panel{
+    position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:230;
+    background:var(--panel);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    transform:translateX(-100%);transition:transform .2s ease;
+    box-shadow:6px 0 20px rgba(0,0,0,.4);
+  }
+  #active-panel.open{transform:translateX(0);}
+  #active-panel-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:14px 16px;border-bottom:1px solid var(--border);flex:0 0 auto;
+  }
+  #active-panel-head span{font-size:15px;font-weight:700;color:var(--accent);}
+  #active-panel-close{
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;
+  }
+  #active-panel-close:hover{border-color:var(--accent);}
+  #active-panel-group-toggle{margin:12px 16px;align-self:flex-start;flex:0 0 auto;}
+  #active-panel-body{flex:1 1 auto;overflow-y:auto;padding:0 12px 16px;}
+  #active-panel-empty{color:var(--text-dim);font-size:13px;padding:10px 4px;}
+
+  .active-group{margin-bottom:6px;}
+  .active-group-head{
+    width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    border-radius:7px;padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;text-align:left;
+  }
+  .active-group-head:hover{border-color:var(--accent);}
+  .active-group-head .chev{color:var(--text-dim);transition:transform .15s;font-size:11px;}
+  .active-group.open .active-group-head .chev{transform:rotate(90deg);}
+  .active-group-count{color:var(--text-dim);font-weight:400;}
+  .active-group-body{display:none;padding:6px 4px 4px 8px;}
+  .active-group.open .active-group-body{display:block;}
+  .active-quest-row{
+    display:flex;align-items:flex-start;gap:7px;
+    padding:6px 8px;font-size:12.5px;color:var(--text);cursor:pointer;border-radius:5px;
+    border-left:2px solid transparent;
+  }
+  .active-quest-row:hover{background:var(--panel-2);border-left-color:var(--accent);color:var(--accent);}
+  .active-quest-trader-icon{width:18px;height:18px;border-radius:50%;flex:0 0 auto;object-fit:cover;margin-top:1px;}
+  .active-quest-row-main{display:flex;flex-wrap:wrap;align-items:center;gap:4px;flex:1;min-width:0;}
+  .active-quest-name{color:inherit;}
+  .quest-map-tag{
+    background:var(--panel);border:1px solid var(--border);color:var(--text-dim);
+    font-size:10px;padding:1px 6px;border-radius:10px;white-space:nowrap;
+  }
+
+  /* ---------- Untracked quests side panel ---------- */
+  #btn-untracked-panel{
+    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 58px);left:14px;z-index:210;
+    display:flex;align-items:center;gap:7px;
+    background:var(--panel-2);color:var(--text);
+    border:1px solid var(--border);border-radius:22px;padding:8px 15px 8px 12px;
+    font-size:13px;font-weight:600;cursor:pointer;
+    box-shadow:0 3px 10px rgba(0,0,0,.4);
+  }
+  #btn-untracked-panel:hover{border-color:var(--danger);color:var(--danger);}
+  #btn-untracked-panel.active{background:var(--danger);color:#fff;border-color:var(--danger);}
+
+  #untracked-panel{
+    position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:230;
+    background:var(--panel);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    transform:translateX(-100%);transition:transform .2s ease;
+    box-shadow:6px 0 20px rgba(0,0,0,.4);
+  }
+  #untracked-panel.open{transform:translateX(0);}
+  #untracked-panel-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:14px 16px;border-bottom:1px solid var(--border);flex:0 0 auto;
+  }
+  #untracked-panel-head span{font-size:15px;font-weight:700;color:var(--danger);}
+  #untracked-panel-close{
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;
+  }
+  #untracked-panel-close:hover{border-color:var(--accent);}
+  #untracked-panel-body{flex:1 1 auto;overflow-y:auto;padding:10px 12px 16px;}
+  #untracked-panel-empty{color:var(--text-dim);font-size:13px;padding:10px 4px;}
+  .untracked-row{
+    display:flex;align-items:center;gap:8px;
+    padding:7px 8px;font-size:12.5px;color:var(--text);border-radius:5px;margin-bottom:4px;
+    background:var(--panel-2);border:1px solid var(--border);
+  }
+  .untracked-row-name{flex:1;min-width:0;cursor:pointer;}
+  .untracked-row-name:hover{color:var(--accent);}
+  .untracked-restore-btn{
+    flex:0 0 auto;background:var(--panel);border:1px solid var(--border);color:var(--text);
+    border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;
+  }
+  .untracked-restore-btn:hover{border-color:var(--accent-2);color:var(--accent-2);}
+
   #loading{
     position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
     flex-direction:column;gap:10px;background:var(--bg);z-index:200;color:var(--text-dim);font-size:14px;
@@ -479,14 +606,19 @@
     #search{min-width:0;width:100%;}
     #level-filter{order:3;font-size:11px;gap:4px;}
     #level-filter input{width:40px;padding:6px 4px;}
+    #player-level-control{order:3;font-size:11px;gap:4px;}
+    #player-level-input{width:36px;padding:6px 4px;}
     .topbtn{padding:6px 9px;font-size:11.5px;order:3;}
     #legend{display:none;}
     #status{order:3;font-size:11px;}
   }
   @media (max-width:480px){
-    #btn-coffee, #btn-feedback{padding:8px 10px;font-size:0;gap:0;}
+    #btn-coffee, #btn-feedback, #btn-active-panel, #btn-untracked-panel{padding:8px 10px;font-size:0;gap:0;}
     #btn-coffee::before{content:"☕";font-size:16px;}
     #btn-feedback::before{content:"✉️";font-size:14px;}
+    #btn-active-panel::before{content:"🎯";font-size:14px;}
+    #btn-untracked-panel::before{content:"🚫";font-size:14px;}
+    #active-panel, #untracked-panel{width:100%;max-width:100%;}
     .trader-toggle{padding:2px 7px 2px 2px;font-size:11px;gap:4px;}
     .trader-toggle img{width:18px;height:18px;}
     #modal, #coffee-modal, #feedback-modal{padding:14px;}
@@ -506,6 +638,12 @@
   <div id="search-wrap">
     <input id="search" type="text" data-i18n-placeholder="searchPlaceholder" placeholder="Поиск задания…" autocomplete="off">
     <div id="search-dropdown"></div>
+  </div>
+  <div id="player-level-control">
+    <span data-i18n="activePanelLevelLabel">Мой уровень</span>
+    <button type="button" class="topbtn" id="player-level-minus">−</button>
+    <input type="number" id="player-level-input" min="1" max="79" data-i18n-placeholder="activePanelLevelPlaceholder" placeholder="—">
+    <button type="button" class="topbtn" id="player-level-plus">+</button>
   </div>
   <div id="level-filter">
     <span data-i18n="levelLabel">Уровень</span>
@@ -634,6 +772,28 @@
   </div>
 </div>
 
+<button id="btn-active-panel" data-i18n-title="activePanelBtnTitle" data-i18n="activePanelBtnLabel" title="Список активных заданий">🎯 Активные</button>
+<div id="active-panel">
+  <div id="active-panel-head">
+    <span data-i18n="activePanelTitle">Активные задания</span>
+    <button id="active-panel-close" data-i18n="closeLabel">Закрыть ✕</button>
+  </div>
+  <div id="active-panel-group-toggle" class="lang-switch">
+    <button type="button" class="lang-opt active" data-group="trader" data-i18n="activePanelByTrader">По торговцам</button>
+    <button type="button" class="lang-opt" data-group="map" data-i18n="activePanelByMap">По картам</button>
+  </div>
+  <div id="active-panel-body"></div>
+</div>
+
+<button id="btn-untracked-panel" data-i18n-title="untrackedPanelBtnTitle" data-i18n="untrackedPanelBtnLabel" title="Список убранных заданий">🚫 Убранные</button>
+<div id="untracked-panel">
+  <div id="untracked-panel-head">
+    <span data-i18n="untrackedPanelTitle">Убранные задания</span>
+    <button id="untracked-panel-close" data-i18n="closeLabel">Закрыть ✕</button>
+  </div>
+  <div id="untracked-panel-body"></div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -723,7 +883,24 @@
     loadFailedPrefix: {ru:"Не удалось загрузить данные: ", en:"Failed to load data: "},
     loadFailedSuffix: {ru:". Проверьте подключение к api.tarkov.dev и обновите страницу.", en:". Check your connection to api.tarkov.dev and reload the page."},
     offlineCacheBannerPrefix: {ru:"⚠ Не удалось связаться с api.tarkov.dev — показаны сохранённые данные от ", en:"⚠ Could not reach api.tarkov.dev — showing cached data from "},
-    offlineCacheBannerClose: {ru:"Закрыть", en:"Dismiss"}
+    offlineCacheBannerClose: {ru:"Закрыть", en:"Dismiss"},
+    activePanelBtnTitle: {ru:"Список активных заданий", en:"List of active quests"},
+    activePanelBtnLabel: {ru:"🎯 Активные", en:"🎯 Active"},
+    activePanelTitle: {ru:"Активные задания", en:"Active quests"},
+    activePanelByTrader: {ru:"По торговцам", en:"By trader"},
+    activePanelByMap: {ru:"По картам", en:"By map"},
+    activePanelNoMap: {ru:"Без привязки к карте", en:"No specific map"},
+    activePanelEmpty: {ru:"Нет активных заданий", en:"No active quests"},
+    activePanelLevelLabel: {ru:"Мой уровень", en:"My level"},
+    activePanelLevelPlaceholder: {ru:"—", en:"—"},
+    untrackLabel: {ru:"Не отслеживать", en:"Untrack"},
+    untrackedLabel: {ru:"Отслеживать", en:"Track"},
+    untrackBtnTitle: {ru:"Исключить это задание из списка активных", en:"Exclude this quest from the active list"},
+    untrackedPanelBtnTitle: {ru:"Список убранных заданий", en:"List of untracked quests"},
+    untrackedPanelBtnLabel: {ru:"🚫 Убранные", en:"🚫 Untracked"},
+    untrackedPanelTitle: {ru:"Убранные задания", en:"Untracked quests"},
+    untrackedPanelEmpty: {ru:"Нет убранных заданий", en:"No untracked quests"},
+    untrackedPanelRestore: {ru:"Отслеживать", en:"Track"}
   };
   var langState = {lang: loadJSON(LS_LANG, "ru")};
   function i18n(key){
@@ -844,8 +1021,9 @@
   var API_URL = "https://api.tarkov.dev/graphql";
   var QUERY = "query { tasks(lang: " + langState.lang + ") { id name minPlayerLevel wikiLink kappaRequired lightkeeperRequired " +
     "trader { id name normalizedName imageLink } " +
+    "map { name } " +
     "taskRequirements { task { id name } } " +
-    "objectives { type description optional " +
+    "objectives { type description optional maps { name } " +
       "... on TaskObjectiveItem { count foundInRaid item { id name iconLink image512pxLink wikiLink link normalizedName } } " +
       "... on TaskObjectiveShoot { count targetNames usingWeapon { id name iconLink image512pxLink wikiLink link } usingWeaponMods { id name iconLink image512pxLink wikiLink link } } " +
       "... on TaskObjectiveExtract { count exitStatus zoneNames } " +
@@ -861,6 +1039,8 @@
   var LS_VIEW = "tarkov_view_state_v1";
   var LS_OBJ_DONE = "tarkov_objective_done_v1";
   var LS_TASKS_CACHE = "tarkov_tasks_cache_v1";
+  var LS_PLAYER_LEVEL = "tarkov_player_level_v1";
+  var LS_UNTRACKED = "tarkov_untracked_v1";
 
   var TRADER_ORDER = ["prapor", "therapist", "skier", "peacekeeper", "mechanic", "ragman", "jaeger", "fence", "ref"];
   var CARD_W = 250, GAP_Y = 26, LEVEL_GAP = 34, HEADER_H = 580;
@@ -882,7 +1062,9 @@
     levelTo: null,
     kappaOnly: false,
     lightkeeperOnly: false,
-    activeOnly: false
+    activeOnly: false,
+    playerLevel: loadJSON(LS_PLAYER_LEVEL, null),
+    untracked: loadJSON(LS_UNTRACKED, {})
   };
 
   function loadJSON(key, fallback){
@@ -932,13 +1114,17 @@
     buildMapHighlightRegex((data.maps || []).map(function(m){ return m.name; }));
     var allItems = [];
     state.tasks.forEach(function(t){
+      var mapNames = {};
+      if(t.map && t.map.name) mapNames[t.map.name] = true;
       (t.objectives || []).forEach(function(o){
         if(o.item) allItems.push(o.item);
         (o.usingWeapon || []).forEach(function(it){ allItems.push(it); });
         (o.usingWeaponMods || []).forEach(function(group){ (group || []).forEach(function(it){ allItems.push(it); }); });
         (o.useAny || []).forEach(function(it){ allItems.push(it); });
         (o.containsAll || []).forEach(function(it){ allItems.push(it); });
+        (o.maps || []).forEach(function(m){ if(m && m.name) mapNames[m.name] = true; });
       });
+      t.questMaps = Object.keys(mapNames);
     });
     buildItemHighlightRegex(allItems);
     if(langState.lang !== "ru"){
@@ -1160,6 +1346,8 @@
     setupPanZoom();
     setupSearch();
     setupLevelFilter();
+    setupActivePanel();
+    setupUntrackedPanel();
     updateLayoutOffsets();
     applyView();
   }
@@ -1358,11 +1546,14 @@
     return true;
   }
 
-  // "Active" = not completed yet, and every prerequisite quest is already completed
+  // "Active" = not completed yet, every prerequisite quest is already completed, and the
+  // player's own level (if set) meets the quest's required level.
   // (i.e. it's actually available to start right now).
   function isTaskActive(t){
     if(!t) return false;
     if(state.completed[t.id]) return false;
+    if(state.untracked[t.id]) return false;
+    if(state.playerLevel != null && t.minPlayerLevel && t.minPlayerLevel > state.playerLevel) return false;
     var reqs = t.taskRequirements || [];
     return reqs.every(function(req){ return req.task && state.completed[req.task.id]; });
   }
@@ -1387,6 +1578,63 @@
       var visible = visibleTaskIds[path.dataset.from] && visibleTaskIds[path.dataset.to];
       path.style.display = visible ? "" : "none";
     });
+  }
+
+  function applyUntrackedUI(taskId){
+    var isUntracked = !!state.untracked[taskId];
+    var card = elWorld.querySelector('.qcard[data-task-id="' + cssEscape(taskId) + '"]');
+    if(card){
+      card.classList.toggle("untracked", isUntracked);
+      var btn = card.querySelector(".btn-untrack");
+      if(btn){
+        btn.classList.toggle("on", isUntracked);
+        btn.textContent = isUntracked ? i18n("untrackedLabel") : i18n("untrackLabel");
+      }
+    }
+    var modalBtn = document.getElementById("modal-untrack-btn");
+    if(modalBtn && modalBtn.dataset.taskId === taskId){
+      modalBtn.classList.toggle("on", isUntracked);
+      modalBtn.textContent = isUntracked ? i18n("untrackedLabel") : i18n("untrackLabel");
+    }
+  }
+
+  function toggleUntrack(taskId){
+    state.untracked[taskId] = !state.untracked[taskId];
+    if(!state.untracked[taskId]) delete state.untracked[taskId];
+    saveJSON(LS_UNTRACKED, state.untracked);
+    applyUntrackedUI(taskId);
+    if(state.activeOnly) applyVisibility();
+    refreshActivePanelIfOpen();
+    refreshUntrackedPanelIfOpen();
+  }
+
+  function applyCompletedUI(taskId){
+    var isDone = !!state.completed[taskId];
+    var card = elWorld.querySelector('.qcard[data-task-id="' + cssEscape(taskId) + '"]');
+    if(card){
+      card.classList.toggle("completed", isDone);
+      var btn = card.querySelector(".btn-done");
+      if(btn){
+        btn.classList.toggle("on", isDone);
+        btn.textContent = isDone ? i18n("doneLabelChecked") : i18n("doneLabel");
+      }
+    }
+    var modalBtn = document.getElementById("modal-done-btn");
+    if(modalBtn && modalBtn.dataset.taskId === taskId){
+      modalBtn.classList.toggle("on", isDone);
+      modalBtn.textContent = isDone ? i18n("doneLabelChecked") : i18n("doneLabel");
+    }
+  }
+
+  function toggleCompleted(taskId){
+    state.completed[taskId] = !state.completed[taskId];
+    saveJSON(LS_COMPLETED, state.completed);
+    applyCompletedUI(taskId);
+    updateFilterProgressLabels();
+    if(state.activeOnly) applyVisibility();
+    updateTraderProgressLabels();
+    updateStatusLabel();
+    refreshActivePanelIfOpen();
   }
 
   var ITEM_OBJECTIVE_TYPES = ["giveItem", "findItem", "plantItem"];
@@ -1426,7 +1674,7 @@
 
   function buildCardElement(t){
       var card = document.createElement("div");
-      card.className = "qcard" + (state.completed[t.id] ? " completed" : "") + (t.kappaRequired ? " kappa" : "");
+      card.className = "qcard" + (state.completed[t.id] ? " completed" : "") + (t.kappaRequired ? " kappa" : "") + (state.untracked[t.id] ? " untracked" : "");
       card.dataset.trader = t.trader.id;
       card.dataset.taskId = t.id;
       card.dataset.name = t.name.toLowerCase();
@@ -1478,19 +1726,18 @@
       var btnDone = document.createElement("button");
       btnDone.className = "btn-done" + (state.completed[t.id] ? " on" : "");
       btnDone.textContent = state.completed[t.id] ? i18n("doneLabelChecked") : i18n("doneLabel");
-      btnDone.addEventListener("click", function(){
-        state.completed[t.id] = !state.completed[t.id];
-        saveJSON(LS_COMPLETED, state.completed);
-        card.classList.toggle("completed", !!state.completed[t.id]);
-        btnDone.classList.toggle("on", !!state.completed[t.id]);
-        btnDone.textContent = state.completed[t.id] ? i18n("doneLabelChecked") : i18n("doneLabel");
-        updateFilterProgressLabels();
-        if(state.activeOnly) applyVisibility();
-        updateTraderProgressLabels();
-        updateStatusLabel();
+      btnDone.addEventListener("click", function(){ toggleCompleted(t.id); });
+      var btnUntrack = document.createElement("button");
+      btnUntrack.className = "btn-untrack" + (state.untracked[t.id] ? " on" : "");
+      btnUntrack.textContent = state.untracked[t.id] ? i18n("untrackedLabel") : i18n("untrackLabel");
+      btnUntrack.title = i18n("untrackBtnTitle");
+      btnUntrack.addEventListener("click", function(e){
+        e.stopPropagation();
+        toggleUntrack(t.id);
       });
       foot.appendChild(btnDetails);
       foot.appendChild(btnDone);
+      foot.appendChild(btnUntrack);
       card.appendChild(foot);
 
       return card;
@@ -1680,6 +1927,12 @@
         (t.ruWikiLink ? '<a class="wiki-link" href="' + escAttr(t.ruWikiLink) + '" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("openWikiLabel")) + '</a>' : "") +
       '</div>' +
       '<button type="button" id="modal-guide-btn" data-task-id="' + escAttr(t.id) + '">' + escHtml(i18n("guideBtnLabel")) + '</button>' +
+      '<button type="button" id="modal-done-btn" class="' + (state.completed[t.id] ? "on" : "") + '" data-task-id="' + escAttr(t.id) + '">' +
+        escHtml(state.completed[t.id] ? i18n("doneLabelChecked") : i18n("doneLabel")) +
+      '</button>' +
+      '<button type="button" id="modal-untrack-btn" class="' + (state.untracked[t.id] ? "on" : "") + '" data-task-id="' + escAttr(t.id) + '" title="' + escAttr(i18n("untrackBtnTitle")) + '">' +
+        escHtml(state.untracked[t.id] ? i18n("untrackedLabel") : i18n("untrackLabel")) +
+      '</button>' +
       '<div class="modal-section-title">' + escHtml(i18n("requiredQuestsTitle")) + '</div>' +
       '<ul class="modal-objectives modal-requirements">' + requirementsHtml + '</ul>' +
       '<div class="modal-section-title">' + escHtml(i18n("unlocksQuestsTitle")) + '</div>' +
@@ -1700,10 +1953,16 @@
     }
     elModal.querySelectorAll(".modal-link[data-goto]").forEach(function(li){
       if(!li.dataset.goto) return;
-      li.addEventListener("click", function(){ focusOnTask(li.dataset.goto); });
+      li.addEventListener("click", function(){
+        var targetTask = state.byId[li.dataset.goto];
+        focusOnTask(li.dataset.goto);
+        if(targetTask) openModal(targetTask);
+      });
     });
     document.getElementById("modal-close-btn").addEventListener("click", closeModal);
     document.getElementById("modal-guide-btn").addEventListener("click", function(){ openGuide(t.id); });
+    document.getElementById("modal-done-btn").addEventListener("click", function(){ toggleCompleted(t.id); });
+    document.getElementById("modal-untrack-btn").addEventListener("click", function(){ toggleUntrack(t.id); });
     elOverlay.classList.add("open");
 
     loadGuides().then(function(guides){
@@ -2345,6 +2604,244 @@
     });
 
     updateFilterProgressLabels();
+  }
+
+  // ---------------- Active quests side panel ----------------
+  var activePanelGroupMode = "trader";
+  var activePanelOpenGroups = {};
+
+  function buildTraderGroups(){
+    var traderMap = {};
+    var order = [];
+    state.tasks.forEach(function(t){
+      if(!traderMap[t.trader.id]){
+        traderMap[t.trader.id] = {label: t.trader.name, normalizedName: t.trader.normalizedName, tasks: []};
+        order.push(t.trader.id);
+      }
+      if(isTaskActive(t)) traderMap[t.trader.id].tasks.push(t);
+    });
+    order.sort(function(a, b){
+      var ia = TRADER_ORDER.indexOf(traderMap[a].normalizedName), ib = TRADER_ORDER.indexOf(traderMap[b].normalizedName);
+      if(ia === -1) ia = TRADER_ORDER.length;
+      if(ib === -1) ib = TRADER_ORDER.length;
+      if(ia !== ib) return ia - ib;
+      return traderMap[a].label.localeCompare(traderMap[b].label);
+    });
+    return order.map(function(key){
+      var b = traderMap[key];
+      b.tasks.sort(function(x, y){ return x.name.localeCompare(y.name); });
+      return {key: key, label: b.label, tasks: b.tasks};
+    });
+  }
+
+  function buildMapGroups(){
+    var mapBucket = {};
+    var order = [];
+    function ensure(key, label){
+      if(!mapBucket[key]){ mapBucket[key] = {label: label, tasks: []}; order.push(key); }
+      return mapBucket[key];
+    }
+    state.tasks.forEach(function(t){
+      var maps = (t.questMaps && t.questMaps.length) ? t.questMaps : ["__none__"];
+      maps.forEach(function(mapName){
+        var key = mapName === "__none__" ? "__none__" : mapName;
+        var label = mapName === "__none__" ? i18n("activePanelNoMap") : mapName;
+        var bucket = ensure(key, label);
+        if(isTaskActive(t)) bucket.tasks.push(t);
+      });
+    });
+    order.sort(function(a, b){
+      var diff = mapBucket[b].tasks.length - mapBucket[a].tasks.length;
+      if(diff !== 0) return diff;
+      if(a === "__none__") return 1;
+      if(b === "__none__") return -1;
+      return mapBucket[a].label.localeCompare(mapBucket[b].label);
+    });
+    return order.map(function(key){
+      var b = mapBucket[key];
+      b.tasks.sort(function(x, y){ return x.name.localeCompare(y.name); });
+      return {key: key, label: b.label, tasks: b.tasks};
+    });
+  }
+
+  function renderActivePanel(){
+    var body = document.getElementById("active-panel-body");
+    if(!body) return;
+    var groups = activePanelGroupMode === "trader" ? buildTraderGroups() : buildMapGroups();
+    body.innerHTML = "";
+    groups.forEach(function(g){
+      var groupKey = activePanelGroupMode + ":" + g.key;
+      var groupEl = document.createElement("div");
+      groupEl.className = "active-group" + (activePanelOpenGroups[groupKey] ? " open" : "");
+
+      var head = document.createElement("button");
+      head.type = "button";
+      head.className = "active-group-head";
+      head.innerHTML = '<span>' + escHtml(g.label) + ' <span class="active-group-count">(' + g.tasks.length + ')</span></span><span class="chev">▸</span>';
+      head.addEventListener("click", function(){
+        activePanelOpenGroups[groupKey] = !activePanelOpenGroups[groupKey];
+        groupEl.classList.toggle("open", activePanelOpenGroups[groupKey]);
+      });
+
+      var bodyWrap = document.createElement("div");
+      bodyWrap.className = "active-group-body";
+      if(g.tasks.length){
+        g.tasks.forEach(function(t){
+          var row = document.createElement("div");
+          row.className = "active-quest-row";
+          var mapTagsHtml = "";
+          if(activePanelGroupMode === "trader"){
+            var maps = (t.questMaps && t.questMaps.length) ? t.questMaps : [i18n("activePanelNoMap")];
+            mapTagsHtml = maps.map(function(m){ return '<span class="quest-map-tag">' + escHtml(m) + '</span>'; }).join("");
+          }
+          row.innerHTML =
+            '<img class="active-quest-trader-icon" src="' + escAttr(t.trader.imageLink) + '" alt="" title="' + escAttr(t.trader.name) + '" loading="lazy">' +
+            '<div class="active-quest-row-main"><span class="active-quest-name">' + escHtml(t.name) + '</span>' + mapTagsHtml + '</div>';
+          row.addEventListener("click", function(){ focusOnTask(t.id); openModal(t); });
+          bodyWrap.appendChild(row);
+        });
+      } else {
+        var noneMsg = document.createElement("div");
+        noneMsg.className = "active-quest-row";
+        noneMsg.style.opacity = ".5";
+        noneMsg.style.cursor = "default";
+        noneMsg.textContent = i18n("activePanelEmpty");
+        bodyWrap.appendChild(noneMsg);
+      }
+
+      groupEl.appendChild(head);
+      groupEl.appendChild(bodyWrap);
+      body.appendChild(groupEl);
+    });
+  }
+
+  function refreshActivePanelIfOpen(){
+    var panel = document.getElementById("active-panel");
+    if(panel && panel.classList.contains("open")) renderActivePanel();
+  }
+
+  function setupActivePanel(){
+    var btn = document.getElementById("btn-active-panel");
+    var panel = document.getElementById("active-panel");
+    var closeBtn = document.getElementById("active-panel-close");
+
+    function openPanel(){
+      renderActivePanel();
+      panel.classList.add("open");
+      btn.classList.add("active");
+    }
+    function closePanel(){
+      panel.classList.remove("open");
+      btn.classList.remove("active");
+    }
+    btn.addEventListener("click", function(){
+      if(panel.classList.contains("open")) closePanel(); else openPanel();
+    });
+    closeBtn.addEventListener("click", closePanel);
+    document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePanel(); });
+
+    document.querySelectorAll("#active-panel-group-toggle .lang-opt").forEach(function(el){
+      el.addEventListener("click", function(){
+        if(el.dataset.group === activePanelGroupMode) return;
+        activePanelGroupMode = el.dataset.group;
+        document.querySelectorAll("#active-panel-group-toggle .lang-opt").forEach(function(o){
+          o.classList.toggle("active", o.dataset.group === activePanelGroupMode);
+        });
+        renderActivePanel();
+      });
+    });
+
+    var levelInput = document.getElementById("player-level-input");
+    var levelMinus = document.getElementById("player-level-minus");
+    var levelPlus = document.getElementById("player-level-plus");
+    levelInput.value = state.playerLevel != null ? state.playerLevel : "";
+
+    function commitPlayerLevel(newVal){
+      var n = parseInt(newVal, 10);
+      state.playerLevel = (isNaN(n) || n < 1) ? null : Math.min(n, 79);
+      levelInput.value = state.playerLevel != null ? state.playerLevel : "";
+      saveJSON(LS_PLAYER_LEVEL, state.playerLevel);
+      if(state.activeOnly) applyVisibility();
+      refreshActivePanelIfOpen();
+    }
+    levelInput.addEventListener("change", function(){ commitPlayerLevel(levelInput.value); });
+    levelMinus.addEventListener("click", function(){
+      commitPlayerLevel((state.playerLevel != null ? state.playerLevel : 1) - 1);
+    });
+    levelPlus.addEventListener("click", function(){
+      commitPlayerLevel((state.playerLevel != null ? state.playerLevel : 0) + 1);
+    });
+  }
+
+  // ---------------- Untracked quests side panel ----------------
+  function renderUntrackedPanel(){
+    var body = document.getElementById("untracked-panel-body");
+    if(!body) return;
+    var tasks = Object.keys(state.untracked)
+      .filter(function(id){ return state.untracked[id]; })
+      .map(function(id){ return state.byId[id]; })
+      .filter(Boolean)
+      .sort(function(a, b){ return a.name.localeCompare(b.name); });
+    body.innerHTML = "";
+    if(!tasks.length){
+      var empty = document.createElement("div");
+      empty.id = "untracked-panel-empty";
+      empty.textContent = i18n("untrackedPanelEmpty");
+      body.appendChild(empty);
+      return;
+    }
+    tasks.forEach(function(t){
+      var row = document.createElement("div");
+      row.className = "untracked-row";
+
+      var icon = document.createElement("img");
+      icon.className = "active-quest-trader-icon";
+      icon.src = t.trader.imageLink;
+      icon.alt = "";
+      icon.title = t.trader.name;
+      icon.loading = "lazy";
+
+      var nameSpan = document.createElement("span");
+      nameSpan.className = "untracked-row-name";
+      nameSpan.textContent = t.name;
+      nameSpan.addEventListener("click", function(){ focusOnTask(t.id); openModal(t); });
+
+      var restoreBtn = document.createElement("button");
+      restoreBtn.className = "untracked-restore-btn";
+      restoreBtn.textContent = i18n("untrackedPanelRestore");
+      restoreBtn.addEventListener("click", function(){ toggleUntrack(t.id); });
+
+      row.appendChild(icon);
+      row.appendChild(nameSpan);
+      row.appendChild(restoreBtn);
+      body.appendChild(row);
+    });
+  }
+
+  function refreshUntrackedPanelIfOpen(){
+    var panel = document.getElementById("untracked-panel");
+    if(panel && panel.classList.contains("open")) renderUntrackedPanel();
+  }
+
+  function setupUntrackedPanel(){
+    var btn = document.getElementById("btn-untracked-panel");
+    var panel = document.getElementById("untracked-panel");
+    var closeBtn = document.getElementById("untracked-panel-close");
+
+    function openPanel(){
+      renderUntrackedPanel();
+      panel.classList.add("open");
+      btn.classList.add("active");
+    }
+    function closePanel(){
+      panel.classList.remove("open");
+      btn.classList.remove("active");
+    }
+    btn.addEventListener("click", function(){
+      if(panel.classList.contains("open")) closePanel(); else openPanel();
+    });
+    closeBtn.addEventListener("click", closePanel);
+    document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePanel(); });
   }
 
   function updateFilterProgressLabels(){
