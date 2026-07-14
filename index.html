@@ -595,9 +595,76 @@
     font-size:10px;padding:1px 6px;border-radius:10px;white-space:nowrap;
   }
 
+  /* ---------- Needed items side panel ---------- */
+  #btn-items-panel{
+    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 58px);left:14px;z-index:210;
+    display:flex;align-items:center;gap:7px;
+    background:var(--panel-2);color:var(--text);
+    border:1px solid var(--border);border-radius:22px;padding:8px 15px 8px 12px;
+    font-size:13px;font-weight:600;cursor:pointer;
+    box-shadow:0 3px 10px rgba(0,0,0,.4);
+  }
+  #btn-items-panel:hover{border-color:var(--accent-2);color:var(--accent-2);}
+  #btn-items-panel.active{background:var(--accent-2);color:#0e1210;border-color:var(--accent-2);}
+
+  #items-panel{
+    position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:230;
+    background:var(--panel);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    transform:translateX(-100%);transition:transform .2s ease;
+    box-shadow:6px 0 20px rgba(0,0,0,.4);
+  }
+  #items-panel.open{transform:translateX(0);}
+  #items-panel-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:14px 16px;border-bottom:1px solid var(--border);flex:0 0 auto;
+  }
+  #items-panel-head span{font-size:15px;font-weight:700;color:var(--accent-2);}
+  #items-panel-close{
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;
+  }
+  #items-panel-close:hover{border-color:var(--accent);}
+  #items-panel-body{flex:1 1 auto;overflow-y:auto;padding:10px 12px 16px;}
+
+  .items-group-head{
+    width:100%;display:flex;align-items:center;gap:4px;
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+    border-radius:7px;padding:4px 6px 4px 12px;
+  }
+  .items-group-head:hover{border-color:var(--accent);}
+  .items-group-toggle-btn{
+    flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:none;border:none;color:inherit;font-size:13px;font-weight:600;
+    padding:5px 0;cursor:pointer;text-align:left;
+  }
+  .items-group-refresh-btn{
+    flex:0 0 auto;background:none;border:1px solid var(--border);border-radius:6px;
+    color:var(--text-dim);font-size:12px;padding:4px 7px;cursor:pointer;line-height:1;
+  }
+  .items-group-refresh-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .items-group-more-btn{
+    width:100%;margin-top:4px;background:var(--panel-2);border:1px solid var(--border);color:var(--text-dim);
+    border-radius:6px;padding:7px;font-size:12px;cursor:pointer;
+  }
+  .items-group-more-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  .items-panel-quest-group{
+    margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);
+  }
+  .items-panel-quest-group.ready{opacity:.7;}
+  .items-panel-quest-label{
+    display:flex;align-items:center;gap:6px;padding:0 2px 4px;cursor:pointer;
+    font-size:11.5px;color:var(--text-dim);
+  }
+  .items-panel-quest-label:hover{color:var(--accent);}
+  .items-panel-quest-label img{width:16px;height:16px;border-radius:50%;flex:0 0 auto;object-fit:cover;}
+  .items-panel-quest-label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .items-panel-quest-group .qitem{margin-bottom:4px;}
+
   /* ---------- Untracked quests side panel ---------- */
   #btn-untracked-panel{
-    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 58px);left:14px;z-index:210;
+    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 106px);left:14px;z-index:210;
     display:flex;align-items:center;gap:7px;
     background:var(--panel-2);color:var(--text);
     border:1px solid var(--border);border-radius:22px;padding:8px 15px 8px 12px;
@@ -682,12 +749,13 @@
     #status{order:3;font-size:11px;}
   }
   @media (max-width:480px){
-    #btn-coffee, #btn-feedback, #btn-active-panel, #btn-untracked-panel{padding:8px 10px;font-size:0;gap:0;}
+    #btn-coffee, #btn-feedback, #btn-active-panel, #btn-items-panel, #btn-untracked-panel{padding:8px 10px;font-size:0;gap:0;}
     #btn-coffee::before{content:"☕";font-size:16px;}
     #btn-feedback::before{content:"✉️";font-size:14px;}
     #btn-active-panel::before{content:"🎯";font-size:14px;}
+    #btn-items-panel::before{content:"📦";font-size:14px;}
     #btn-untracked-panel::before{content:"🚫";font-size:14px;}
-    #active-panel, #untracked-panel{width:100%;max-width:100%;}
+    #active-panel, #items-panel, #untracked-panel{width:100%;max-width:100%;}
     .trader-toggle{padding:2px 7px 2px 2px;font-size:11px;gap:4px;}
     .trader-toggle img{width:18px;height:18px;}
     #modal, #coffee-modal, #feedback-modal{padding:14px;}
@@ -869,6 +937,15 @@
   <div id="active-panel-body"></div>
 </div>
 
+<button id="btn-items-panel" data-i18n-title="itemsPanelBtnTitle" data-i18n="itemsPanelBtnLabel" title="Список нужных предметов">📦 Предметы</button>
+<div id="items-panel">
+  <div id="items-panel-head">
+    <span id="items-panel-title">Предметы</span>
+    <button id="items-panel-close" data-i18n="closeLabel">Закрыть ✕</button>
+  </div>
+  <div id="items-panel-body"></div>
+</div>
+
 <button id="btn-untracked-panel" data-i18n-title="untrackedPanelBtnTitle" data-i18n="untrackedPanelBtnLabel" title="Список убранных заданий">🚫 Убранные</button>
 <div id="untracked-panel">
   <div id="untracked-panel-head">
@@ -884,7 +961,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "27";
+  var APP_VERSION = "28";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1002,7 +1079,16 @@
     autoUncompleteDependentsTitle: {ru:"Зависимые задания уже выполнены", en:"Dependent quests are already completed"},
     autoUncompleteDependentsConfirm: {ru:"Снять отметку «Выполнено» и с этих заданий тоже?", en:"Also un-mark these quests as completed?"},
     cancelLabel: {ru:"Отмена", en:"Cancel"},
-    confirmLabel: {ru:"Подтвердить", en:"Confirm"}
+    confirmLabel: {ru:"Подтвердить", en:"Confirm"},
+    itemsPanelBtnTitle: {ru:"Список нужных предметов", en:"List of needed items"},
+    itemsPanelBtnLabel: {ru:"📦 Предметы", en:"📦 Items"},
+    itemsPanelTitle: {ru:"Предметы", en:"Items"},
+    itemsPanelActive: {ru:"Активные", en:"Active"},
+    itemsPanelOther: {ru:"Остальные", en:"Other"},
+    itemsPanelReady: {ru:"Готовые", en:"Ready"},
+    itemsPanelEmpty: {ru:"Пусто", en:"Empty"},
+    itemsPanelRefreshTitle: {ru:"Обновить сортировку", en:"Refresh sorting"},
+    itemsPanelMoreLabel: {ru:"Ещё", en:"More"}
   };
   var langState = {lang: loadJSON(LS_LANG, "ru")};
   function i18n(key){
@@ -1484,6 +1570,7 @@
     setupSearch();
     setupLevelFilter();
     setupActivePanel();
+    setupItemsPanel();
     setupUntrackedPanel();
     updateLayoutOffsets();
     applyView();
@@ -1743,6 +1830,7 @@
     if(state.activeOnly) applyVisibility();
     refreshActivePanelIfOpen();
     refreshUntrackedPanelIfOpen();
+    refreshItemsPanelIfOpen();
   }
 
   function applyCompletedUI(taskId){
@@ -1887,6 +1975,7 @@
     updateTraderProgressLabels();
     updateStatusLabel();
     refreshActivePanelIfOpen();
+    refreshItemsPanelIfOpen();
   }
 
   function toggleCompleted(taskId){
@@ -3146,6 +3235,7 @@
       saveJSON(LS_PLAYER_LEVEL, state.playerLevel);
       if(state.activeOnly) applyVisibility();
       refreshActivePanelIfOpen();
+      refreshItemsPanelIfOpen();
     }
     levelInput.addEventListener("change", function(){ commitPlayerLevel(levelInput.value); });
     levelMinus.addEventListener("click", function(){
@@ -3213,6 +3303,196 @@
 
     function openPanel(){
       renderUntrackedPanel();
+      panel.classList.add("open");
+      btn.classList.add("active");
+    }
+    function closePanel(){
+      panel.classList.remove("open");
+      btn.classList.remove("active");
+    }
+    btn.addEventListener("click", function(){
+      if(panel.classList.contains("open")) closePanel(); else openPanel();
+    });
+    closeBtn.addEventListener("click", closePanel);
+    document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePanel(); });
+  }
+
+  // ---------------- Needed items side panel ----------------
+  // "Активные" = items of currently-active, not-yet-completed quests (fully-ready
+  // ones sorted to the bottom within the tab, but still shown here).
+  // "Остальные" = same, for not-yet-completed quests that aren't active yet.
+  // "Готовые" = quests already marked completed, with their items (for reference).
+  var ITEMS_PANEL_GROUPS_META = [
+    {key: "active", labelKey: "itemsPanelActive"},
+    {key: "other", labelKey: "itemsPanelOther"},
+    {key: "ready", labelKey: "itemsPanelReady"}
+  ];
+  var ITEMS_PANEL_PAGE_SIZE = 10;
+  var itemsPanelOpenGroups = {active: true};
+  var itemsPanelVisibleCount = {};
+  var itemsPanelBuckets = null;
+
+  // One entry per quest that has "giveItem" (hand over to trader) objectives, from
+  // quests that aren't untracked. Completed quests go only into "ready"; everything
+  // else is split into "active"/"other". Buckets: see comment above.
+  function buildGiveItemQuestGroups(){
+    var buckets = {active: [], other: [], ready: []};
+    state.tasks.forEach(function(t){
+      if(state.untracked[t.id]) return;
+      // Self-heal: a completed quest's subtasks/items must show as ready even if it
+      // was marked done before this cascade existed (or via import/edge cases).
+      if(state.completed[t.id]) markAllSubtasksDone(t);
+      var items = itemObjectives(t);
+      var giveEntries = [];
+      items.forEach(function(obj, idx){
+        if(obj.type !== "giveItem") return;
+        var key = t.id + "::" + idx;
+        var need = obj.count || 1;
+        var have = state.itemHave[key] || 0;
+        giveEntries.push({obj: obj, key: key, need: need, have: have, linkedFindKey: findLinkedFindKey(t, items, obj, idx)});
+      });
+      if(!giveEntries.length) return;
+      var allReady = giveEntries.every(function(e){ return e.have >= e.need; });
+      var group = {task: t, entries: giveEntries, allReady: allReady};
+      if(state.completed[t.id]){
+        buckets.ready.push(group);
+        return;
+      }
+      (isTaskActive(t) ? buckets.active : buckets.other).push(group);
+    });
+    function progressRatio(group){
+      var haveSum = 0, needSum = 0;
+      group.entries.forEach(function(e){ haveSum += Math.min(e.have, e.need); needSum += e.need; });
+      return needSum ? haveSum / needSum : 1;
+    }
+    function sortNotReadyFirst(a, b){
+      if(a.allReady !== b.allReady) return a.allReady ? 1 : -1;
+      var diff = progressRatio(b) - progressRatio(a);
+      if(diff) return diff;
+      return a.task.name.localeCompare(b.task.name);
+    }
+    buckets.active.sort(sortNotReadyFirst);
+    buckets.other.sort(sortNotReadyFirst);
+    buckets.ready.sort(function(a, b){ return a.task.name.localeCompare(b.task.name); });
+    return buckets;
+  }
+
+  function renderItemsPanel(){
+    var body = document.getElementById("items-panel-body");
+    if(!body) return;
+    itemsPanelBuckets = buildGiveItemQuestGroups();
+    itemsPanelVisibleCount = {};
+    body.innerHTML = "";
+    ITEMS_PANEL_GROUPS_META.forEach(function(meta){
+      var groupEl = document.createElement("div");
+      groupEl.className = "active-group" + (itemsPanelOpenGroups[meta.key] ? " open" : "");
+      groupEl.id = "items-panel-group-" + meta.key;
+
+      var head = document.createElement("div");
+      head.className = "active-group-head items-group-head";
+
+      var toggleBtn = document.createElement("button");
+      toggleBtn.type = "button";
+      toggleBtn.className = "items-group-toggle-btn";
+      toggleBtn.innerHTML = '<span>' + escHtml(i18n(meta.labelKey)) + ' <span class="active-group-count" id="items-panel-count-' + meta.key + '"></span></span><span class="chev">▸</span>';
+      toggleBtn.addEventListener("click", function(){
+        itemsPanelOpenGroups[meta.key] = !itemsPanelOpenGroups[meta.key];
+        groupEl.classList.toggle("open", itemsPanelOpenGroups[meta.key]);
+      });
+
+      var refreshBtn = document.createElement("button");
+      refreshBtn.type = "button";
+      refreshBtn.className = "items-group-refresh-btn";
+      refreshBtn.title = i18n("itemsPanelRefreshTitle");
+      refreshBtn.textContent = "🔄";
+      refreshBtn.addEventListener("click", function(e){
+        e.stopPropagation();
+        itemsPanelBuckets = buildGiveItemQuestGroups();
+        // Reset back to the first page too: a just-edited item usually moves toward
+        // the top after resorting, so this is what actually surfaces the change —
+        // otherwise it could still be sitting past the "Ещё" cutoff, looking like
+        // the refresh button did nothing.
+        itemsPanelVisibleCount[meta.key] = ITEMS_PANEL_PAGE_SIZE;
+        renderItemsPanelGroupBody(meta.key);
+      });
+
+      head.appendChild(toggleBtn);
+      head.appendChild(refreshBtn);
+
+      var bodyWrap = document.createElement("div");
+      bodyWrap.className = "active-group-body";
+      bodyWrap.id = "items-panel-group-body-" + meta.key;
+
+      groupEl.appendChild(head);
+      groupEl.appendChild(bodyWrap);
+      body.appendChild(groupEl);
+
+      renderItemsPanelGroupBody(meta.key);
+    });
+  }
+
+  function renderItemsPanelGroupBody(key){
+    var list = (itemsPanelBuckets && itemsPanelBuckets[key]) || [];
+    var countEl = document.getElementById("items-panel-count-" + key);
+    if(countEl) countEl.textContent = "(" + list.length + ")";
+    var bodyWrap = document.getElementById("items-panel-group-body-" + key);
+    if(!bodyWrap) return;
+    bodyWrap.innerHTML = "";
+
+    if(!list.length){
+      var noneMsg = document.createElement("div");
+      noneMsg.className = "active-quest-row";
+      noneMsg.style.opacity = ".5";
+      noneMsg.style.cursor = "default";
+      noneMsg.textContent = i18n("itemsPanelEmpty");
+      bodyWrap.appendChild(noneMsg);
+      return;
+    }
+
+    var visible = Math.min(itemsPanelVisibleCount[key] || ITEMS_PANEL_PAGE_SIZE, list.length);
+    list.slice(0, visible).forEach(function(group){
+      var questWrap = document.createElement("div");
+      questWrap.className = "items-panel-quest-group" + (group.allReady ? " ready" : "");
+
+      var questLabel = document.createElement("div");
+      questLabel.className = "items-panel-quest-label";
+      questLabel.innerHTML =
+        '<img src="' + escAttr(group.task.trader.imageLink) + '" alt="" title="' + escAttr(group.task.trader.name) + '" loading="lazy">' +
+        '<span>' + escHtml(group.task.name) + '</span>';
+      questLabel.addEventListener("click", function(){ focusOnTask(group.task.id); openModal(group.task); });
+      questWrap.appendChild(questLabel);
+
+      group.entries.forEach(function(entry){
+        questWrap.appendChild(buildItemRow(entry.obj, entry.key, entry.linkedFindKey));
+      });
+      bodyWrap.appendChild(questWrap);
+    });
+
+    if(list.length > visible){
+      var moreBtn = document.createElement("button");
+      moreBtn.type = "button";
+      moreBtn.className = "items-group-more-btn";
+      moreBtn.textContent = i18n("itemsPanelMoreLabel") + " (" + (list.length - visible) + ")";
+      moreBtn.addEventListener("click", function(){
+        itemsPanelVisibleCount[key] = visible + ITEMS_PANEL_PAGE_SIZE;
+        renderItemsPanelGroupBody(key);
+      });
+      bodyWrap.appendChild(moreBtn);
+    }
+  }
+
+  function refreshItemsPanelIfOpen(){
+    var panel = document.getElementById("items-panel");
+    if(panel && panel.classList.contains("open")) renderItemsPanel();
+  }
+
+  function setupItemsPanel(){
+    var btn = document.getElementById("btn-items-panel");
+    var panel = document.getElementById("items-panel");
+    var closeBtn = document.getElementById("items-panel-close");
+
+    function openPanel(){
+      renderItemsPanel();
       panel.classList.add("open");
       btn.classList.add("active");
     }
