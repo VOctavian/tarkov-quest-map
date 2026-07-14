@@ -227,6 +227,9 @@
   }
   .qitem-progress .need{color:var(--text-dim);font-size:11px;}
   .qitem-progress.done .have{color:var(--accent-2);}
+  .qitem-max-btn{margin-left:auto;color:var(--accent-2)!important;border-color:#2f4736!important;}
+  .qitem-max-btn:hover{border-color:var(--accent-2)!important;background:var(--panel-2)!important;}
+  .qitem.done{border-color:var(--accent-2);background:rgba(90,161,122,.12);}
   .qcard-foot{display:flex;gap:6px;margin-top:8px;}
   .qcard-foot button{
     flex:1;padding:6px 4px;border-radius:6px;border:1px solid var(--border);
@@ -296,6 +299,35 @@
     display:flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);
     background:var(--panel-2);border:1px solid var(--border);border-radius:5px;padding:4px 7px;
   }
+
+  /* ---------- Map hover tooltip (multi-level menu) ---------- */
+  .map-hl{cursor:help;}
+  #map-tooltip{
+    position:fixed;z-index:300;display:none;
+    background:var(--panel);border:1px solid var(--border);border-radius:8px;
+    box-shadow:0 6px 20px rgba(0,0,0,.5);padding:6px;min-width:170px;
+  }
+  #map-tooltip.open{display:block;}
+  #map-tooltip .mt-link{
+    display:block;padding:7px 10px;border-radius:6px;font-size:12.5px;
+    color:var(--text);text-decoration:none;white-space:nowrap;
+  }
+  #map-tooltip .mt-link:hover{background:var(--panel-2);color:var(--accent);}
+  #map-tooltip .mt-group{position:relative;}
+  #map-tooltip .mt-group-head{
+    padding:7px 10px;border-radius:6px;font-size:12.5px;color:var(--text);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;white-space:nowrap;
+  }
+  #map-tooltip .mt-group:hover > .mt-group-head{background:var(--panel-2);color:var(--accent);}
+  #map-tooltip .mt-chev{color:var(--text-dim);font-size:10px;}
+  #map-tooltip .mt-submenu{
+    display:none;position:absolute;left:100%;top:-6px;
+    background:var(--panel);border:1px solid var(--border);border-radius:8px;
+    padding:6px;min-width:120px;box-shadow:0 6px 20px rgba(0,0,0,.5);
+  }
+  #map-tooltip .mt-group:hover .mt-submenu{display:block;}
+  #map-tooltip .mt-submenu.flip{left:auto;right:100%;}
+
   #modal-guide-btn{
     display:inline-block;margin-left:10px;background:var(--panel-2);border:1px solid var(--border);
     color:var(--text);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;
@@ -346,7 +378,8 @@
   #gallery-overlay.open{display:flex;}
   #gallery-overlay{overflow:hidden;}
   #gallery-overlay img{
-    max-width:90vw;max-height:80vh;border-radius:6px;
+    max-width:90vw;max-height:80vh;min-width:65vw;min-height:65vh;
+    width:auto;height:auto;object-fit:contain;border-radius:6px;
     touch-action:none;user-select:none;cursor:zoom-in;transition:transform .12s ease;
   }
   #gallery-img.zoomed{cursor:grab;}
@@ -471,6 +504,36 @@
   #feedback-status.ok{color:var(--accent-2);}
   #feedback-status.err{color:var(--danger);}
   .feedback-hidden{position:absolute;left:-9999px;}
+
+  /* ---------- Generic confirm dialog ---------- */
+  #confirm-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;
+    align-items:center;justify-content:center;z-index:260;
+  }
+  #confirm-overlay.open{display:flex;}
+  #confirm-modal{
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    width:420px;max-width:92vw;max-height:80vh;overflow-y:auto;padding:20px;
+  }
+  #confirm-modal h2{margin:0 0 10px;color:var(--accent);font-size:17px;}
+  #confirm-message{color:var(--text);font-size:13px;margin-bottom:12px;}
+  #confirm-list{
+    list-style:none;margin:0 0 16px;padding:0;
+    max-height:220px;overflow-y:auto;
+    display:flex;flex-direction:column;gap:4px;
+  }
+  #confirm-list li{
+    background:var(--panel-2);border:1px solid var(--border);border-radius:6px;
+    padding:6px 10px;font-size:12.5px;color:var(--text);
+  }
+  #confirm-actions{display:flex;gap:8px;justify-content:flex-end;}
+  #confirm-actions button{
+    padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid var(--border);
+  }
+  #confirm-cancel-btn{background:var(--panel-2);color:var(--text);}
+  #confirm-cancel-btn:hover{border-color:var(--accent);}
+  #confirm-ok-btn{background:var(--accent-2);color:#0e1210;font-weight:700;border-color:var(--accent-2);}
+  #confirm-ok-btn:hover{filter:brightness(1.1);}
 
   /* ---------- Active quests side panel ---------- */
   #btn-active-panel{
@@ -687,6 +750,7 @@
 </div>
 
 <div id="item-tooltip"></div>
+<div id="map-tooltip"></div>
 
 <div id="guide-overlay">
   <div id="guide-modal">
@@ -780,6 +844,18 @@
   </div>
 </div>
 
+<div id="confirm-overlay">
+  <div id="confirm-modal">
+    <h2 id="confirm-title"></h2>
+    <div id="confirm-message"></div>
+    <ul id="confirm-list"></ul>
+    <div id="confirm-actions">
+      <button type="button" id="confirm-cancel-btn" data-i18n="cancelLabel">Отмена</button>
+      <button type="button" id="confirm-ok-btn" data-i18n="confirmLabel">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
 <button id="btn-active-panel" data-i18n-title="activePanelBtnTitle" data-i18n="activePanelBtnLabel" title="Список активных заданий">🎯 Активные</button>
 <div id="active-panel">
   <div id="active-panel-head">
@@ -808,7 +884,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "26";
+  var APP_VERSION = "27";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -880,6 +956,11 @@
     ttWikiLabel: {ru:"📖 Вики", en:"📖 Wiki"},
     ttTarkovHelpLabel: {ru:"❔ tarkov.help", en:"❔ tarkov.help"},
     ttMarketLabel: {ru:"💰 Цена / рынок", en:"💰 Price / market"},
+    ttMapWikiLabel: {ru:"📖 Вики", en:"📖 Wiki"},
+    ttMapTarkovDevLabel: {ru:"🗺 tarkov.dev", en:"🗺 tarkov.dev"},
+    ttMapInteractiveLabel: {ru:"Интерактивная", en:"Interactive"},
+    ttMap2DLabel: {ru:"2D", en:"2D"},
+    ttMap3DLabel: {ru:"3D", en:"3D"},
     requiredQuestsTitle: {ru:"Требуемые задания", en:"Required quests"},
     unlocksQuestsTitle: {ru:"Открывает задания", en:"Unlocks quests"},
     questTextTitle: {ru:"Текст задания", en:"Quest text"},
@@ -914,7 +995,14 @@
     untrackedPanelBtnLabel: {ru:"🚫 Убранные", en:"🚫 Untracked"},
     untrackedPanelTitle: {ru:"Убранные задания", en:"Untracked quests"},
     untrackedPanelEmpty: {ru:"Нет убранных заданий", en:"No untracked quests"},
-    untrackedPanelRestore: {ru:"Отслеживать", en:"Track"}
+    untrackedPanelRestore: {ru:"Отслеживать", en:"Track"},
+    itemMaxBtnTitle: {ru:"Отметить максимум", en:"Mark as max"},
+    autoCompletePrereqTitle: {ru:"Незавершённые требуемые задания", en:"Incomplete required quests"},
+    autoCompletePrereqConfirm: {ru:"Вы выполнили эти задания?", en:"Have you completed these quests?"},
+    autoUncompleteDependentsTitle: {ru:"Зависимые задания уже выполнены", en:"Dependent quests are already completed"},
+    autoUncompleteDependentsConfirm: {ru:"Снять отметку «Выполнено» и с этих заданий тоже?", en:"Also un-mark these quests as completed?"},
+    cancelLabel: {ru:"Отмена", en:"Cancel"},
+    confirmLabel: {ru:"Подтвердить", en:"Confirm"}
   };
   var langState = {lang: loadJSON(LS_LANG, "ru")};
   function i18n(key){
@@ -1045,7 +1133,7 @@
       "... on TaskObjectiveBuildItem { item { id name iconLink image512pxLink wikiLink link } containsAll { id name iconLink image512pxLink wikiLink link } } " +
       "... on TaskObjectiveQuestItem { count } " +
       "... on TaskObjectiveExperience { count } " +
-    "} } maps(lang: " + langState.lang + ") { name } }";
+    "} } maps(lang: " + langState.lang + ") { name normalizedName wiki } }";
 
   var LS_COMPLETED = "tarkov_quest_completed_v1";
   var LS_ITEMS = "tarkov_item_have_v1";
@@ -1125,7 +1213,7 @@
   }
   function applyTasksData(data){
     state.tasks = data.tasks.filter(function(t){ return t.trader; });
-    buildMapHighlightRegex((data.maps || []).map(function(m){ return m.name; }));
+    buildMapHighlightRegex(data.maps || []);
     var allItems = [];
     state.tasks.forEach(function(t){
       var mapNames = {};
@@ -1174,11 +1262,44 @@
   });
 
   // ---------------- Map name highlighting ----------------
+  // tarkov.dev's map page slugs don't follow a single consistent pattern (some reuse
+  // a short alias for the 2D/3D variants instead of the map's own normalizedName), so
+  // this table was built by hand from tarkov.dev's sitemap.xml rather than derived.
+  var TARKOV_DEV_MAP_SLUGS = {
+    "factory": {interactive:"factory", twoD:"factory-2d"},
+    "night-factory": {interactive:"factory", twoD:"factory-2d"},
+    "customs": {interactive:"customs", twoD:"customs-2d", threeD:"customs-3d"},
+    "woods": {interactive:"woods", twoD:"woods-2d", threeD:"woods-3d"},
+    "lighthouse": {interactive:"lighthouse", twoD:"lighthouse-2d", threeD:"lighthouse-3d"},
+    "shoreline": {interactive:"shoreline", twoD:"shoreline-2d", threeD:"shoreline-3d"},
+    "reserve": {interactive:"reserve", twoD:"reserve-2d", threeD:"reserve-3d"},
+    "interchange": {interactive:"interchange", twoD:"interchange-2d", threeD:"interchange-3d"},
+    "streets-of-tarkov": {interactive:"streets-of-tarkov", twoD:"streets-2d", threeD:"streets-3d"},
+    "the-lab": {interactive:"the-lab", twoD:"labs-2d"},
+    "the-labyrinth": {interactive:"the-labyrinth", twoD:"labyrinth-2d"},
+    "ground-zero": {interactive:"ground-zero", twoD:"ground-zero-2d", threeD:"ground-zero-3d"},
+    "ground-zero-21": {interactive:"ground-zero", twoD:"ground-zero-2d", threeD:"ground-zero-3d"},
+    "ground-zero-tutorial": {interactive:"ground-zero", twoD:"ground-zero-2d", threeD:"ground-zero-3d"},
+    "terminal": {interactive:"terminal", twoD:"terminal-2d"},
+    "icebreaker": {twoD:"icebreaker-2d"}
+  };
   var mapHighlightRegex = null;
-  function buildMapHighlightRegex(names){
-    var unique = names.filter(Boolean).filter(function(n, i, arr){ return arr.indexOf(n) === i; });
-    if(!unique.length) return;
-    var escaped = unique.sort(function(a, b){ return b.length - a.length; })
+  var mapsByEscapedName = {};
+  function buildMapHighlightRegex(maps){
+    var names = [];
+    (maps || []).forEach(function(m){
+      if(!m || !m.name) return;
+      var escName = escHtml(m.name);
+      if(mapsByEscapedName[escName]) return;
+      mapsByEscapedName[escName] = {
+        name: m.name,
+        wiki: m.wiki || null,
+        slugs: TARKOV_DEV_MAP_SLUGS[m.normalizedName] || null
+      };
+      names.push(escName);
+    });
+    if(!names.length) return;
+    var escaped = names.sort(function(a, b){ return b.length - a.length; })
       .map(function(n){ return n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); });
     mapHighlightRegex = new RegExp("(" + escaped.join("|") + ")", "g");
   }
@@ -1219,7 +1340,9 @@
     var escaped = escHtml(text);
     if(!escaped) return escaped;
     escaped = highlightItemsInEscapedHtml(escaped);
-    if(mapHighlightRegex) escaped = escaped.replace(mapHighlightRegex, '<span class="map-hl">$1</span>');
+    if(mapHighlightRegex) escaped = escaped.replace(mapHighlightRegex, function(m){
+      return '<span class="map-hl" data-map-name="' + m + '">' + m + '</span>';
+    });
     escaped = escaped.replace(FACTION_REGEX, function(m, faction){
       return '<span class="faction-' + faction.toLowerCase() + '">' + faction + '</span>';
     });
@@ -1640,15 +1763,176 @@
     }
   }
 
-  function toggleCompleted(taskId){
-    state.completed[taskId] = !state.completed[taskId];
+  function applyItemHaveUI(key, newVal){
+    document.querySelectorAll('.qitem-progress[data-key="' + cssEscape(key) + '"]').forEach(function(el){
+      var inp = el.querySelector(".have");
+      var n = parseInt(el.querySelector(".need").textContent.replace("/","").trim(), 10) || 1;
+      if(inp) inp.value = newVal;
+      var isDone = newVal >= n;
+      el.classList.toggle("done", isDone);
+      var block = el.closest(".qitem");
+      if(block) block.classList.toggle("done", isDone);
+    });
+  }
+
+  function applyObjectiveDoneUI(key, val){
+    document.querySelectorAll('.qobjective[data-obj-key="' + cssEscape(key) + '"]').forEach(function(el){
+      el.classList.toggle("done", val);
+      var input = el.querySelector("input");
+      if(input) input.checked = val;
+    });
+  }
+
+  // Marks every item objective's counter at max and every checkbox subtask as done
+  // for a task, without touching the task's own completed flag.
+  function markAllSubtasksDone(t){
+    itemObjectives(t).forEach(function(obj, idx){
+      var key = t.id + "::" + idx;
+      var need = obj.count || 1;
+      if(state.itemHave[key] !== need){
+        state.itemHave[key] = need;
+        applyItemHaveUI(key, need);
+      }
+    });
+    nonItemObjectives(t).forEach(function(obj, idx){
+      var key = t.id + "::obj::" + idx;
+      if(!state.objectiveDone[key]){
+        state.objectiveDone[key] = true;
+        applyObjectiveDoneUI(key, true);
+      }
+    });
+    saveJSON(LS_ITEMS, state.itemHave);
+    saveJSON(LS_OBJ_DONE, state.objectiveDone);
+  }
+
+  // Transitive closure of not-yet-completed prerequisite quests, skipping past
+  // any prerequisite that's already completed (its own chain is assumed done).
+  function collectIncompletePrereqs(t, visited){
+    visited = visited || {};
+    var result = [];
+    (t.taskRequirements || []).forEach(function(req){
+      if(!req.task) return;
+      var reqTask = state.byId[req.task.id];
+      if(!reqTask || visited[reqTask.id]) return;
+      visited[reqTask.id] = true;
+      if(state.completed[reqTask.id]) return;
+      result.push(reqTask);
+      result = result.concat(collectIncompletePrereqs(reqTask, visited));
+    });
+    return result;
+  }
+
+  // Transitive closure of already-completed dependent quests (quests that require
+  // this one, directly or through a chain), skipping past anything not completed
+  // (nothing to undo there, and further descendants can't be completed either).
+  function collectCompletedDependents(t, visited){
+    visited = visited || {};
+    var result = [];
+    (state.dependents[t.id] || []).forEach(function(dep){
+      if(!dep || visited[dep.id]) return;
+      visited[dep.id] = true;
+      if(!state.completed[dep.id]) return;
+      result.push(dep);
+      result = result.concat(collectCompletedDependents(dep, visited));
+    });
+    return result;
+  }
+
+  // Reusable HTML confirm dialog (replaces native confirm()). Resolves true/false.
+  var elConfirmOverlay = document.getElementById("confirm-overlay");
+  var elConfirmTitle = document.getElementById("confirm-title");
+  var elConfirmMessage = document.getElementById("confirm-message");
+  var elConfirmList = document.getElementById("confirm-list");
+  var elConfirmOkBtn = document.getElementById("confirm-ok-btn");
+  var elConfirmCancelBtn = document.getElementById("confirm-cancel-btn");
+  var confirmResolve = null;
+
+  function showConfirmDialog(title, message, items){
+    elConfirmTitle.textContent = title;
+    elConfirmMessage.textContent = message;
+    elConfirmList.innerHTML = "";
+    (items || []).forEach(function(text){
+      var li = document.createElement("li");
+      li.textContent = text;
+      elConfirmList.appendChild(li);
+    });
+    elConfirmList.style.display = items && items.length ? "" : "none";
+    elConfirmOverlay.classList.add("open");
+    return new Promise(function(resolve){
+      confirmResolve = resolve;
+    });
+  }
+  function closeConfirmDialog(result){
+    elConfirmOverlay.classList.remove("open");
+    if(confirmResolve){
+      var resolve = confirmResolve;
+      confirmResolve = null;
+      resolve(result);
+    }
+  }
+  elConfirmOkBtn.addEventListener("click", function(){ closeConfirmDialog(true); });
+  elConfirmCancelBtn.addEventListener("click", function(){ closeConfirmDialog(false); });
+  elConfirmOverlay.addEventListener("click", function(e){ if(e.target === elConfirmOverlay) closeConfirmDialog(false); });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && elConfirmOverlay.classList.contains("open")) closeConfirmDialog(false);
+  });
+
+  function finalizeCompletion(taskId, t, newValue){
+    state.completed[taskId] = newValue;
     saveJSON(LS_COMPLETED, state.completed);
     applyCompletedUI(taskId);
+    if(newValue && t) markAllSubtasksDone(t);
     updateFilterProgressLabels();
     if(state.activeOnly) applyVisibility();
     updateTraderProgressLabels();
     updateStatusLabel();
     refreshActivePanelIfOpen();
+  }
+
+  function toggleCompleted(taskId){
+    var t = state.byId[taskId];
+    var newValue = !state.completed[taskId];
+
+    if(newValue && t){
+      var incompletePrereqs = collectIncompletePrereqs(t);
+      if(incompletePrereqs.length){
+        showConfirmDialog(
+          i18n("autoCompletePrereqTitle"),
+          i18n("autoCompletePrereqConfirm"),
+          incompletePrereqs.map(function(rt){ return rt.name; })
+        ).then(function(confirmed){
+          if(!confirmed) return;
+          incompletePrereqs.forEach(function(rt){
+            state.completed[rt.id] = true;
+            applyCompletedUI(rt.id);
+            markAllSubtasksDone(rt);
+          });
+          finalizeCompletion(taskId, t, newValue);
+        });
+        return;
+      }
+    }
+
+    if(!newValue && t){
+      var completedDependents = collectCompletedDependents(t);
+      if(completedDependents.length){
+        showConfirmDialog(
+          i18n("autoUncompleteDependentsTitle"),
+          i18n("autoUncompleteDependentsConfirm"),
+          completedDependents.map(function(dep){ return dep.name; })
+        ).then(function(confirmed){
+          if(!confirmed) return;
+          completedDependents.forEach(function(dep){
+            state.completed[dep.id] = false;
+            applyCompletedUI(dep.id);
+          });
+          finalizeCompletion(taskId, t, newValue);
+        });
+        return;
+      }
+    }
+
+    finalizeCompletion(taskId, t, newValue);
   }
 
   var ITEM_OBJECTIVE_TYPES = ["giveItem", "findItem", "plantItem"];
@@ -1657,6 +1941,20 @@
   }
   function nonItemObjectives(t){
     return (t.objectives || []).filter(function(o){ return ITEM_OBJECTIVE_TYPES.indexOf(o.type) === -1 || !o.item; });
+  }
+  // For a "giveItem" objective, find the sibling "findItem" objective for the same
+  // item within the same task (e.g. "find in raid X" + "hand over X"), so their
+  // have-counters can stay in sync.
+  function findLinkedFindKey(t, items, obj, idx){
+    if(obj.type !== "giveItem") return null;
+    for(var i = 0; i < items.length; i++){
+      if(i === idx) continue;
+      var other = items[i];
+      if(other.type === "findItem" && other.item && obj.item && other.item.id === obj.item.id){
+        return t.id + "::" + i;
+      }
+    }
+    return null;
   }
   function objectiveCountSuffix(obj){
     return (typeof obj.count === "number" && obj.count > 0) ? " — " + obj.count : "";
@@ -1671,16 +1969,13 @@
     checkbox.addEventListener("change", function(){
       state.objectiveDone[storageKey] = checkbox.checked;
       saveJSON(LS_OBJ_DONE, state.objectiveDone);
-      document.querySelectorAll('.qobjective[data-obj-key="' + cssEscape(storageKey) + '"]').forEach(function(el){
-        el.classList.toggle("done", checkbox.checked);
-        var input = el.querySelector("input");
-        if(input) input.checked = checkbox.checked;
-      });
+      applyObjectiveDoneUI(storageKey, checkbox.checked);
     });
     var text = document.createElement("span");
     var label = (obj.description || "") + objectiveCountSuffix(obj);
     text.innerHTML = highlightMapsHtml(label);
     attachItemTooltipsWithin(text);
+    attachMapTooltipsWithin(text);
     row.appendChild(checkbox);
     row.appendChild(text);
     return row;
@@ -1726,7 +2021,7 @@
         itemsWrap.innerHTML = '<div class="no-items">' + escHtml(i18n("noItemsText")) + '</div>';
       } else {
         items.forEach(function(obj, idx){
-          itemsWrap.appendChild(buildItemRow(obj, t.id + "::" + idx));
+          itemsWrap.appendChild(buildItemRow(obj, t.id + "::" + idx, findLinkedFindKey(t, items, obj, idx)));
         });
       }
       card.appendChild(itemsWrap);
@@ -1757,11 +2052,11 @@
       return card;
   }
 
-  function buildItemRow(obj, storageKey){
+  function buildItemRow(obj, storageKey, linkedFindKey){
     var row = document.createElement("div");
-    row.className = "qitem";
     var need = obj.count || 1;
     var have = state.itemHave[storageKey] || 0;
+    row.className = "qitem" + (have >= need ? " done" : "");
 
     var imgWrap = document.createElement("div");
     imgWrap.className = "qitem-imgwrap";
@@ -1782,6 +2077,7 @@
     nameDiv.title = label;
     attachItemTooltip(nameDiv, obj.item);
     attachItemTooltipsWithin(nameDiv);
+    attachMapTooltipsWithin(nameDiv);
     info.appendChild(nameDiv);
 
     var prog = document.createElement("div");
@@ -1804,13 +2100,12 @@
     function commit(newVal){
       newVal = Math.max(0, parseInt(newVal, 10) || 0);
       state.itemHave[storageKey] = newVal;
+      applyItemHaveUI(storageKey, newVal);
+      if(linkedFindKey && state.itemHave[linkedFindKey] !== newVal){
+        state.itemHave[linkedFindKey] = newVal;
+        applyItemHaveUI(linkedFindKey, newVal);
+      }
       saveJSON(LS_ITEMS, state.itemHave);
-      document.querySelectorAll('.qitem-progress[data-key="' + cssEscape(storageKey) + '"]').forEach(function(el){
-        var inp = el.querySelector(".have");
-        var n = parseInt(el.querySelector(".need").textContent.replace("/","").trim(), 10) || 1;
-        inp.value = newVal;
-        el.classList.toggle("done", newVal >= n);
-      });
     }
     minusBtn.addEventListener("click", function(){ commit((parseInt(input.value,10)||0) - 1); });
     plusBtn.addEventListener("click", function(){ commit((parseInt(input.value,10)||0) + 1); });
@@ -1818,10 +2113,21 @@
     input.addEventListener("mousedown", function(e){ e.stopPropagation(); });
     input.addEventListener("click", function(e){ e.stopPropagation(); });
 
+    var maxBtn = document.createElement("button");
+    maxBtn.type = "button";
+    maxBtn.className = "qitem-max-btn";
+    maxBtn.textContent = "✓";
+    maxBtn.title = i18n("itemMaxBtnTitle");
+    maxBtn.addEventListener("click", function(e){
+      e.stopPropagation();
+      commit(need);
+    });
+
     prog.appendChild(minusBtn);
     prog.appendChild(input);
     prog.appendChild(plusBtn);
     prog.appendChild(needSpan);
+    prog.appendChild(maxBtn);
     info.appendChild(prog);
     row.appendChild(info);
     return row;
@@ -1963,7 +2269,7 @@
     }
     if(items.length){
       var wrap = document.getElementById("modal-items");
-      items.forEach(function(obj, idx){ wrap.appendChild(buildItemRow(obj, t.id + "::" + idx)); });
+      items.forEach(function(obj, idx){ wrap.appendChild(buildItemRow(obj, t.id + "::" + idx, findLinkedFindKey(t, items, obj, idx))); });
     }
     elModal.querySelectorAll(".modal-link[data-goto]").forEach(function(li){
       if(!li.dataset.goto) return;
@@ -2106,6 +2412,64 @@
     el.addEventListener("mouseleave", scheduleItemTooltipHide);
   }
 
+  var elMapTooltip = document.getElementById("map-tooltip");
+  var mapTooltipHideTimer = null;
+  var MAP_TOOLTIP_HIDE_DELAY = 200;
+
+  function positionMapTooltipNear(anchorEl){
+    var pad = 8;
+    var r = anchorEl.getBoundingClientRect();
+    var w = elMapTooltip.offsetWidth || 170;
+    var h = elMapTooltip.offsetHeight || 80;
+    var left = r.right + pad;
+    var top = r.top;
+    if(left + w > window.innerWidth) left = r.left - w - pad;
+    if(left < 0) left = Math.max(0, r.left);
+    if(top + h > window.innerHeight) top = window.innerHeight - h - pad;
+    if(top < 0) top = 0;
+    elMapTooltip.style.left = left + "px";
+    elMapTooltip.style.top = top + "px";
+    var submenu = elMapTooltip.querySelector(".mt-submenu");
+    if(submenu){
+      submenu.classList.toggle("flip", left + w + 130 > window.innerWidth);
+    }
+  }
+  function cancelMapTooltipHide(){
+    if(mapTooltipHideTimer){ clearTimeout(mapTooltipHideTimer); mapTooltipHideTimer = null; }
+  }
+  function scheduleMapTooltipHide(){
+    cancelMapTooltipHide();
+    mapTooltipHideTimer = setTimeout(function(){ elMapTooltip.classList.remove("open"); }, MAP_TOOLTIP_HIDE_DELAY);
+  }
+  elMapTooltip.addEventListener("mouseenter", cancelMapTooltipHide);
+  elMapTooltip.addEventListener("mouseleave", scheduleMapTooltipHide);
+
+  function attachMapTooltip(el, mapInfo){
+    if(!el || !mapInfo) return;
+    el.addEventListener("mouseenter", function(){
+      cancelMapTooltipHide();
+      var slugs = mapInfo.slugs || {};
+      var subLinks =
+        (slugs.interactive ? '<a class="mt-link" href="https://tarkov.dev/map/' + escAttr(slugs.interactive) + '" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("ttMapInteractiveLabel")) + '</a>' : "") +
+        (slugs.twoD ? '<a class="mt-link" href="https://tarkov.dev/map/' + escAttr(slugs.twoD) + '" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("ttMap2DLabel")) + '</a>' : "") +
+        (slugs.threeD ? '<a class="mt-link" href="https://tarkov.dev/map/' + escAttr(slugs.threeD) + '" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("ttMap3DLabel")) + '</a>' : "");
+      elMapTooltip.innerHTML =
+        (mapInfo.wiki ? '<a class="mt-link" href="' + escAttr(mapInfo.wiki) + '" target="_blank" rel="noopener noreferrer">' + escHtml(i18n("ttMapWikiLabel")) + '</a>' : "") +
+        (subLinks ? '<div class="mt-group"><div class="mt-group-head">' + escHtml(i18n("ttMapTarkovDevLabel")) + ' <span class="mt-chev">▸</span></div><div class="mt-submenu">' + subLinks + '</div></div>' : "");
+      elMapTooltip.classList.add("open");
+      positionMapTooltipNear(el);
+    });
+    el.addEventListener("mouseleave", scheduleMapTooltipHide);
+  }
+
+  function attachMapTooltipsWithin(container){
+    if(!container) return;
+    container.querySelectorAll(".map-hl").forEach(function(span){
+      var mapInfo = mapsByEscapedName[span.dataset.mapName];
+      if(mapInfo) attachMapTooltip(span, mapInfo);
+    });
+  }
+
   function openGuide(taskId){
     elGuideText.textContent = "";
     elGuideImages.innerHTML = "";
@@ -2125,6 +2489,7 @@
       }
       elGuideText.innerHTML = highlightMapsHtml(text || "");
       attachItemTooltipsWithin(elGuideText);
+      attachMapTooltipsWithin(elGuideText);
       var images = (useRu && ru.images && ru.images.length) ? ru.images : ((g && g.images) || []);
       images.forEach(function(im, idx){
         var img = document.createElement("img");
