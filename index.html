@@ -2406,7 +2406,8 @@
         completed: state.completed,
         itemHave: state.itemHave,
         objectiveDone: state.objectiveDone,
-        traderVisible: state.traderVisible
+        traderVisible: state.traderVisible,
+        untracked: state.untracked
       };
       var blob = new Blob([JSON.stringify(payload, null, 2)], {type: "application/json"});
       var url = URL.createObjectURL(blob);
@@ -2446,6 +2447,7 @@
         saveJSON(LS_ITEMS, data.itemHave || {});
         saveJSON(LS_OBJ_DONE, data.objectiveDone || {});
         if(data.traderVisible) saveJSON(LS_TRADERS, data.traderVisible);
+        saveJSON(LS_UNTRACKED, data.untracked || {});
         location.reload();
       };
       reader.readAsText(file);
