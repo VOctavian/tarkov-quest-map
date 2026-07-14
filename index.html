@@ -2689,11 +2689,8 @@
         g.tasks.forEach(function(t){
           var row = document.createElement("div");
           row.className = "active-quest-row";
-          var mapTagsHtml = "";
-          if(activePanelGroupMode === "trader"){
-            var maps = (t.questMaps && t.questMaps.length) ? t.questMaps : [i18n("activePanelNoMap")];
-            mapTagsHtml = maps.map(function(m){ return '<span class="quest-map-tag">' + escHtml(m) + '</span>'; }).join("");
-          }
+          var maps = (t.questMaps && t.questMaps.length) ? t.questMaps : [i18n("activePanelNoMap")];
+          var mapTagsHtml = maps.map(function(m){ return '<span class="quest-map-tag">' + escHtml(m) + '</span>'; }).join("");
           row.innerHTML =
             '<img class="active-quest-trader-icon" src="' + escAttr(t.trader.imageLink) + '" alt="" title="' + escAttr(t.trader.name) + '" loading="lazy">' +
             '<div class="active-quest-row-main"><span class="active-quest-name">' + escHtml(t.name) + '</span>' + mapTagsHtml + '</div>';
