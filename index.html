@@ -585,6 +585,12 @@
   .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
 
+  #app-version{
+    position:fixed;bottom:4px;left:6px;z-index:5;
+    font-size:10px;color:var(--text-dim);opacity:.35;
+    pointer-events:none;user-select:none;
+  }
+
   #offline-banner{
     position:fixed;top:0;left:0;right:0;z-index:250;
     background:#4a3a12;color:#ffd77a;border-bottom:1px solid #6b5420;
@@ -667,6 +673,8 @@
   </div>
 </div>
 <div id="traderbar"></div>
+
+<div id="app-version"></div>
 
 <div id="viewport">
   <div id="world">
@@ -775,7 +783,7 @@
 <button id="btn-active-panel" data-i18n-title="activePanelBtnTitle" data-i18n="activePanelBtnLabel" title="Список активных заданий">🎯 Активные</button>
 <div id="active-panel">
   <div id="active-panel-head">
-    <span data-i18n="activePanelTitle">Активные задания</span>
+    <span id="active-panel-title">Активные задания</span>
     <button id="active-panel-close" data-i18n="closeLabel">Закрыть ✕</button>
   </div>
   <div id="active-panel-group-toggle" class="lang-switch">
@@ -797,6 +805,12 @@
 <script>
 (function(){
   "use strict";
+
+  // ---------------- App version indicator (bottom-left corner) ----------------
+  // See CLAUDE.md in this repo for the versioning workflow this number follows.
+  var APP_VERSION = "26";
+  var elAppVersion = document.getElementById("app-version");
+  if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
   // ---------------- Localization ----------------
   var LS_LANG = "tarkov_lang_v1";
@@ -2669,6 +2683,11 @@
   function renderActivePanel(){
     var body = document.getElementById("active-panel-body");
     if(!body) return;
+    var titleEl = document.getElementById("active-panel-title");
+    if(titleEl){
+      var activeCount = state.tasks.filter(isTaskActive).length;
+      titleEl.textContent = i18n("activePanelTitle") + " " + activeCount;
+    }
     var groups = activePanelGroupMode === "trader" ? buildTraderGroups() : buildMapGroups();
     body.innerHTML = "";
     groups.forEach(function(g){
