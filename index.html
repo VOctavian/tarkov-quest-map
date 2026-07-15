@@ -119,6 +119,10 @@
       radial-gradient(circle at 1px 1px, #23292544 1px, transparent 0) 0 0/28px 28px;
   }
   #viewport.dragging{cursor:grabbing;}
+  /* While actively panning, cards sliding under the stationary cursor would fire a
+     mouseenter/mouseleave storm (hover-highlight class toggles + SVG queries) that
+     visibly stutters the drag. Nothing in #world needs pointer events mid-drag. */
+  #viewport.dragging #world, #viewport.zooming #world{pointer-events:none;}
   #world{
     position:absolute;top:0;left:0;transform-origin:0 0;
   }
@@ -1006,7 +1010,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "29";
+  var APP_VERSION = "30";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1324,6 +1328,14 @@
   }
   function saveJSON(key, val){
     try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  }
+  // For state that changes many times per second (wheel-zoom, drag), writing to
+  // localStorage synchronously on every tick visibly stutters the interaction —
+  // this coalesces those writes into one, shortly after things settle down.
+  var debounceTimers = {};
+  function saveJSONDebounced(key, val, delay){
+    clearTimeout(debounceTimers[key]);
+    debounceTimers[key] = setTimeout(function(){ saveJSON(key, val); }, delay || 250);
   }
 
   var elWorld = document.getElementById("world");
@@ -2923,6 +2935,7 @@
       if(dragging){ dragging = false; elViewport.classList.remove("dragging"); saveJSON(LS_VIEW, state.view); }
     });
 
+    var zoomIdleTimer = null;
     elViewport.addEventListener("wheel", function(e){
       e.preventDefault();
       var rect = elViewport.getBoundingClientRect();
@@ -2935,7 +2948,12 @@
       state.view.y = my - worldY * newScale;
       state.view.scale = newScale;
       applyView();
-      saveJSON(LS_VIEW, state.view);
+      saveJSONDebounced(LS_VIEW, state.view);
+      // Cards sliding under the cursor during a fast zoom fire the same hover-highlight
+      // storm as dragging does — suppress pointer events for the burst of wheel ticks.
+      elViewport.classList.add("zooming");
+      clearTimeout(zoomIdleTimer);
+      zoomIdleTimer = setTimeout(function(){ elViewport.classList.remove("zooming"); }, 150);
     }, {passive:false});
 
     // ---- touch: one-finger pan, two-finger pinch zoom ----
