@@ -1010,7 +1010,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "30";
+  var APP_VERSION = "31";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -2179,6 +2179,12 @@
     }
     return null;
   }
+  // A "findItem" row whose count is already tracked (and kept in sync) by a sibling
+  // "giveItem" row for the same item is just noise on screen — skip rendering it.
+  function isPairedFindItem(items, obj){
+    if(obj.type !== "findItem") return false;
+    return items.some(function(o){ return o.type === "giveItem" && o.item && obj.item && o.item.id === obj.item.id; });
+  }
   function objectiveCountSuffix(obj){
     return (typeof obj.count === "number" && obj.count > 0) ? " — " + obj.count : "";
   }
@@ -2259,6 +2265,7 @@
         itemsWrap.innerHTML = '<div class="no-items">' + escHtml(i18n("noItemsText")) + '</div>';
       } else {
         items.forEach(function(obj, idx){
+          if(isPairedFindItem(items, obj)) return;
           itemsWrap.appendChild(buildItemRow(obj, t.id + "::" + idx, findLinkedFindKey(t, items, obj, idx)));
         });
       }
@@ -2516,7 +2523,10 @@
     }
     if(items.length){
       var wrap = document.getElementById("modal-items");
-      items.forEach(function(obj, idx){ wrap.appendChild(buildItemRow(obj, t.id + "::" + idx, findLinkedFindKey(t, items, obj, idx))); });
+      items.forEach(function(obj, idx){
+        if(isPairedFindItem(items, obj)) return;
+        wrap.appendChild(buildItemRow(obj, t.id + "::" + idx, findLinkedFindKey(t, items, obj, idx)));
+      });
     }
     elModal.querySelectorAll(".modal-link[data-goto]").forEach(function(li){
       if(!li.dataset.goto) return;
