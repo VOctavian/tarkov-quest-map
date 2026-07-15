@@ -255,10 +255,39 @@
     align-items:center;justify-content:center;z-index:100;
   }
   #modal-overlay.open{display:flex;}
+  #modal-wrap{display:flex;align-items:stretch;max-width:92vw;max-height:82vh;}
   #modal{
     background:var(--panel);border:1px solid var(--border);border-radius:12px;
-    width:520px;max-width:92vw;max-height:82vh;overflow-y:auto;padding:20px;
+    width:520px;max-width:100%;max-height:82vh;overflow-y:auto;padding:20px;
   }
+  .modal-ear{
+    display:none;flex:0 0 auto;flex-direction:column;width:34px;max-height:82vh;
+    background:var(--panel-2);border:1px solid var(--border);overflow:hidden;
+    cursor:pointer;transition:width .2s ease;
+  }
+  .modal-ear.has-content{display:flex;}
+  .modal-ear.open{width:230px;cursor:default;}
+  #modal-ear-left{border-radius:12px 0 0 12px;border-right:none;}
+  #modal-ear-right{border-radius:0 12px 12px 0;border-left:none;}
+  .modal-ear-peek{
+    writing-mode:vertical-rl;text-orientation:mixed;white-space:nowrap;
+    padding:14px 9px;font-size:12px;font-weight:700;color:var(--text-dim);flex:0 0 auto;
+  }
+  .modal-ear:hover .modal-ear-peek{color:var(--accent);}
+  .modal-ear.open .modal-ear-peek{display:none;}
+  .modal-ear-body{display:none;flex:1 1 auto;overflow-y:auto;padding:12px 10px;}
+  .modal-ear.open .modal-ear-body{display:flex;flex-direction:column;gap:6px;}
+  .modal-ear-item, .modal-ear-standing{
+    display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--border);
+    border-radius:6px;padding:5px 7px;font-size:11.5px;color:var(--text);
+  }
+  .modal-ear-item img, .modal-ear-standing img{width:22px;height:22px;border-radius:4px;object-fit:contain;background:#111;flex:0 0 auto;}
+  .modal-ear-standing img{border-radius:50%;}
+  .modal-ear-item-name, .modal-ear-standing span:nth-child(2){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .modal-ear-item-count{color:var(--text-dim);font-size:11px;flex:0 0 auto;}
+  .modal-ear-standing-val{flex:0 0 auto;font-weight:700;}
+  .modal-ear-standing-val.pos{color:var(--accent-2);}
+  .modal-ear-standing-val.neg{color:var(--danger);}
   #modal h2{margin:0 0 4px;color:var(--accent);font-size:18px;}
   #modal .modal-trader{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:var(--text-dim);font-size:13px;}
   #modal .modal-trader img{width:26px;height:26px;border-radius:50%;}
@@ -571,6 +600,8 @@
   }
   #active-panel-close:hover{border-color:var(--accent);}
   #active-panel-group-toggle{margin:12px 16px;align-self:flex-start;flex:0 0 auto;}
+  #active-panel-extra-filters{display:flex;flex-wrap:wrap;gap:6px;margin:0 16px 12px;flex:0 0 auto;}
+  #active-panel-extra-filters .topbtn{font-size:11.5px;padding:6px 9px;}
   #active-panel-body{flex:1 1 auto;overflow-y:auto;padding:0 12px 16px;}
   #active-panel-empty{color:var(--text-dim);font-size:13px;padding:10px 4px;}
 
@@ -871,7 +902,17 @@
 </div>
 
 <div id="modal-overlay">
-  <div id="modal"></div>
+  <div id="modal-wrap">
+    <div id="modal-ear-left" class="modal-ear">
+      <div class="modal-ear-peek" data-i18n="modalEarStartLabel">🎒 Стартовое снаряжение</div>
+      <div class="modal-ear-body"></div>
+    </div>
+    <div id="modal"></div>
+    <div id="modal-ear-right" class="modal-ear">
+      <div class="modal-ear-peek" data-i18n="modalEarRewardLabel">🎁 Награда</div>
+      <div class="modal-ear-body"></div>
+    </div>
+  </div>
 </div>
 
 <div id="item-tooltip"></div>
@@ -991,6 +1032,10 @@
     <button type="button" class="lang-opt active" data-group="trader" data-i18n="activePanelByTrader">По торговцам</button>
     <button type="button" class="lang-opt" data-group="map" data-i18n="activePanelByMap">По картам</button>
   </div>
+  <div id="active-panel-extra-filters">
+    <button type="button" class="topbtn" id="active-panel-kappa-filter" data-i18n="kappaFilterLabel">Нужны для каппы</button>
+    <button type="button" class="topbtn" id="active-panel-lightkeeper-filter" data-i18n="lightkeeperFilterLabel">Нужно для смотрителя</button>
+  </div>
   <div id="active-panel-body"></div>
 </div>
 
@@ -1028,7 +1073,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "32";
+  var APP_VERSION = "32.1";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1135,6 +1180,8 @@
     untrackLabel: {ru:"Не отслеживать", en:"Untrack"},
     untrackedLabel: {ru:"Отслеживать", en:"Track"},
     untrackBtnTitle: {ru:"Исключить это задание из списка активных", en:"Exclude this quest from the active list"},
+    modalEarStartLabel: {ru:"🎒 Стартовое снаряжение", en:"🎒 Starting equipment"},
+    modalEarRewardLabel: {ru:"🎁 Награда", en:"🎁 Reward"},
     untrackedPanelBtnTitle: {ru:"Список убранных заданий", en:"List of untracked quests"},
     untrackedPanelBtnLabel: {ru:"🚫 Убранные", en:"🚫 Untracked"},
     untrackedPanelTitle: {ru:"Убранные задания", en:"Untracked quests"},
@@ -1288,6 +1335,8 @@
     "trader { id name normalizedName imageLink } " +
     "map { name } " +
     "taskRequirements { task { id name } } " +
+    "startRewards { items { item { id name iconLink image512pxLink wikiLink link } count } traderStanding { trader { id name imageLink } standing } } " +
+    "finishRewards { items { item { id name iconLink image512pxLink wikiLink link } count } traderStanding { trader { id name imageLink } standing } } " +
     "objectives { type description optional maps { name } " +
       "... on TaskObjectiveItem { count foundInRaid item { id name iconLink image512pxLink wikiLink link normalizedName } } " +
       "... on TaskObjectiveShoot { count targetNames usingWeapon { id name iconLink image512pxLink wikiLink link } usingWeaponMods { id name iconLink image512pxLink wikiLink link } } " +
@@ -2472,6 +2521,50 @@
   var elOverlay = document.getElementById("modal-overlay");
   var elModal = document.getElementById("modal");
 
+  // ---------------- Modal "ears" (start equipment / reward flyouts) ----------------
+  var elModalEarLeft = document.getElementById("modal-ear-left");
+  var elModalEarRight = document.getElementById("modal-ear-right");
+  function buildRewardItemRow(item, count){
+    var row = document.createElement("div");
+    row.className = "modal-ear-item";
+    row.innerHTML =
+      '<img src="' + escAttr(item.iconLink) + '" alt="" loading="lazy">' +
+      '<span class="modal-ear-item-name">' + escHtml(item.name) + '</span>' +
+      (count > 1 ? '<span class="modal-ear-item-count">×' + count + '</span>' : '');
+    attachItemTooltip(row.querySelector("img"), item);
+    return row;
+  }
+  function buildStandingRow(ts){
+    var row = document.createElement("div");
+    row.className = "modal-ear-standing";
+    var sign = ts.standing > 0 ? "+" : "";
+    row.innerHTML =
+      '<img src="' + escAttr(ts.trader.imageLink) + '" alt="">' +
+      '<span>' + escHtml(ts.trader.name) + '</span>' +
+      '<span class="modal-ear-standing-val ' + (ts.standing > 0 ? "pos" : ts.standing < 0 ? "neg" : "") + '">' + sign + ts.standing.toFixed(2) + '</span>';
+    return row;
+  }
+  function fillEar(wrap, rewards){
+    var body = wrap.querySelector(".modal-ear-body");
+    body.innerHTML = "";
+    var hasContent = false;
+    ((rewards && rewards.items) || []).forEach(function(ri){
+      if(!ri.item) return;
+      hasContent = true;
+      body.appendChild(buildRewardItemRow(ri.item, ri.count));
+    });
+    ((rewards && rewards.traderStanding) || []).forEach(function(ts){
+      if(!ts.trader) return;
+      hasContent = true;
+      body.appendChild(buildStandingRow(ts));
+    });
+    wrap.classList.toggle("has-content", hasContent);
+    wrap.classList.remove("open");
+  }
+  [elModalEarLeft, elModalEarRight].forEach(function(ear){
+    ear.addEventListener("click", function(){ ear.classList.toggle("open"); });
+  });
+
   function openModal(t){
     var items = itemObjectives(t);
     var subTasks = nonItemObjectives(t);
@@ -2562,6 +2655,8 @@
     if(guideBtn) guideBtn.addEventListener("click", function(){ openGuide(t.id); });
     document.getElementById("modal-done-btn").addEventListener("click", function(){ toggleCompleted(t.id); });
     document.getElementById("modal-untrack-btn").addEventListener("click", function(){ toggleUntrack(t.id); });
+    fillEar(elModalEarLeft, t.startRewards);
+    fillEar(elModalEarRight, t.finishRewards);
     elOverlay.classList.add("open");
 
     loadGuides().then(function(guides){
@@ -3131,6 +3226,24 @@
     });
   }
 
+  // Converts text typed on the "wrong" keyboard layout (same physical keys, other
+  // alphabet) so search still matches when the user forgot to switch EN<->RU layout.
+  var EN_TO_RU_LAYOUT = {
+    "q":"й","w":"ц","e":"у","r":"к","t":"е","y":"н","u":"г","i":"ш","o":"щ","p":"з","[":"х","]":"ъ",
+    "a":"ф","s":"ы","d":"в","f":"а","g":"п","h":"р","j":"о","k":"л","l":"д",";":"ж","'":"э",
+    "z":"я","x":"ч","c":"с","v":"м","b":"и","n":"т","m":"ь",",":"б",".":"ю","/":"."
+  };
+  var RU_TO_EN_LAYOUT = {};
+  Object.keys(EN_TO_RU_LAYOUT).forEach(function(en){ RU_TO_EN_LAYOUT[EN_TO_RU_LAYOUT[en]] = en; });
+  function convertLayout(str, map){
+    var out = "";
+    for(var i = 0; i < str.length; i++){
+      var ch = str[i];
+      out += (map[ch] !== undefined) ? map[ch] : ch;
+    }
+    return out;
+  }
+
   function setupSearch(){
     var input = document.getElementById("search");
     var dropdown = document.getElementById("search-dropdown");
@@ -3189,9 +3302,16 @@
         clearOutline();
         closeDropdown();
         if(!q) return;
+        // Also try the query as if it were typed on the other keyboard layout, so
+        // forgetting to switch EN/RU layout doesn't break the search.
+        var qAlt1 = convertLayout(q, EN_TO_RU_LAYOUT);
+        var qAlt2 = convertLayout(q, RU_TO_EN_LAYOUT);
+        var queryVariants = [q];
+        if(qAlt1 !== q) queryVariants.push(qAlt1);
+        if(qAlt2 !== q && qAlt2 !== qAlt1) queryVariants.push(qAlt2);
         var found = [];
         document.querySelectorAll(".qcard").forEach(function(c){
-          if(c.dataset.name.indexOf(q) !== -1){
+          if(queryVariants.some(function(v){ return c.dataset.name.indexOf(v) !== -1; })){
             c.style.outline = "2px solid var(--accent)";
             var task = state.byId[c.dataset.taskId];
             found.push({
@@ -3288,6 +3408,13 @@
   // ---------------- Active quests side panel ----------------
   var activePanelGroupMode = "trader";
   var activePanelOpenGroups = {};
+  var activePanelKappaOnly = false;
+  var activePanelLightkeeperOnly = false;
+  function activePanelTaskPasses(t){
+    if(activePanelKappaOnly && !t.kappaRequired) return false;
+    if(activePanelLightkeeperOnly && !t.lightkeeperRequired) return false;
+    return isTaskActive(t);
+  }
 
   function buildTraderGroups(){
     var traderMap = {};
@@ -3297,7 +3424,7 @@
         traderMap[t.trader.id] = {label: t.trader.name, normalizedName: t.trader.normalizedName, tasks: []};
         order.push(t.trader.id);
       }
-      if(isTaskActive(t)) traderMap[t.trader.id].tasks.push(t);
+      if(activePanelTaskPasses(t)) traderMap[t.trader.id].tasks.push(t);
     });
     order.sort(function(a, b){
       var ia = TRADER_ORDER.indexOf(traderMap[a].normalizedName), ib = TRADER_ORDER.indexOf(traderMap[b].normalizedName);
@@ -3326,7 +3453,7 @@
         var key = mapName === "__none__" ? "__none__" : mapName;
         var label = mapName === "__none__" ? i18n("activePanelNoMap") : mapName;
         var bucket = ensure(key, label);
-        if(isTaskActive(t)) bucket.tasks.push(t);
+        if(activePanelTaskPasses(t)) bucket.tasks.push(t);
       });
     });
     order.sort(function(a, b){
@@ -3348,7 +3475,7 @@
     if(!body) return;
     var titleEl = document.getElementById("active-panel-title");
     if(titleEl){
-      var activeCount = state.tasks.filter(isTaskActive).length;
+      var activeCount = state.tasks.filter(activePanelTaskPasses).length;
       titleEl.textContent = i18n("activePanelTitle") + " " + activeCount;
     }
     var groups = activePanelGroupMode === "trader" ? buildTraderGroups() : buildMapGroups();
@@ -3430,6 +3557,19 @@
         });
         renderActivePanel();
       });
+    });
+
+    var kappaFilterBtn = document.getElementById("active-panel-kappa-filter");
+    kappaFilterBtn.addEventListener("click", function(){
+      activePanelKappaOnly = !activePanelKappaOnly;
+      kappaFilterBtn.classList.toggle("active", activePanelKappaOnly);
+      renderActivePanel();
+    });
+    var lightkeeperFilterBtn = document.getElementById("active-panel-lightkeeper-filter");
+    lightkeeperFilterBtn.addEventListener("click", function(){
+      activePanelLightkeeperOnly = !activePanelLightkeeperOnly;
+      lightkeeperFilterBtn.classList.toggle("active", activePanelLightkeeperOnly);
+      renderActivePanel();
     });
 
     var levelInput = document.getElementById("player-level-input");
