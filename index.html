@@ -184,7 +184,8 @@
     z-index:2;
   }
   .qcard-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:6px;}
-  .qname{font-weight:600;color:var(--text);font-size:13px;line-height:1.25;}
+  .qname{font-weight:600;color:var(--text);font-size:13px;line-height:1.25;cursor:pointer;}
+  .qname:hover{color:var(--accent);text-decoration:underline;}
   .qobjectives{display:flex;flex-direction:column;gap:5px;margin:0 0 8px;}
   .qobjective{
     display:flex;align-items:flex-start;gap:6px;cursor:pointer;
@@ -716,6 +717,20 @@
   #btn-untracked-panel:hover{border-color:var(--danger);color:var(--danger);}
   #btn-untracked-panel.active{background:var(--danger);color:#fff;border-color:var(--danger);}
 
+  /* ---------- Standalone BTR-stop gallery shortcuts ---------- */
+  #btn-gallery-woods-btr, #btn-gallery-streets-btr{
+    position:fixed;left:14px;z-index:210;
+    display:flex;align-items:center;gap:7px;
+    background:var(--panel-2);color:var(--text);
+    border:1px solid var(--border);border-radius:22px;padding:8px 15px;
+    font-size:12.5px;font-weight:600;cursor:pointer;
+    box-shadow:0 3px 10px rgba(0,0,0,.4);
+    max-width:190px;text-align:left;
+  }
+  #btn-gallery-woods-btr{top:calc(var(--topbar-h) + var(--traderbar-h) + 164px);}
+  #btn-gallery-streets-btr{top:calc(var(--topbar-h) + var(--traderbar-h) + 212px);}
+  #btn-gallery-woods-btr:hover, #btn-gallery-streets-btr:hover{border-color:var(--accent);color:var(--accent);}
+
   #untracked-panel{
     position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:230;
     background:var(--panel);border-right:1px solid var(--border);
@@ -1004,13 +1019,16 @@
   <div id="untracked-panel-body"></div>
 </div>
 
+<button type="button" id="btn-gallery-woods-btr" data-i18n="galleryWoodsBtrLabel" title="Остановки БТР Лес">Остановки БТР Лес</button>
+<button type="button" id="btn-gallery-streets-btr" data-i18n="galleryStreetsBtrLabel" title="Остановки БТР Улицы Таркова">Остановки БТР Улицы Таркова</button>
+
 <script>
 (function(){
   "use strict";
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "31";
+  var APP_VERSION = "32";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1122,6 +1140,8 @@
     untrackedPanelTitle: {ru:"Убранные задания", en:"Untracked quests"},
     untrackedPanelEmpty: {ru:"Нет убранных заданий", en:"No untracked quests"},
     untrackedPanelRestore: {ru:"Отслеживать", en:"Track"},
+    galleryWoodsBtrLabel: {ru:"🚌 Остановки БТР Лес", en:"🚌 BTR stops Woods"},
+    galleryStreetsBtrLabel: {ru:"🚌 Остановки БТР Улицы Таркова", en:"🚌 BTR stops Streets"},
     itemMaxBtnTitle: {ru:"Отметить максимум", en:"Mark as max"},
     autoCompletePrereqTitle: {ru:"Незавершённые требуемые задания", en:"Incomplete required quests"},
     autoCompletePrereqConfirm: {ru:"Вы выполнили эти задания?", en:"Have you completed these quests?"},
@@ -2233,6 +2253,7 @@
         '<img class="qtrader-avatar" src="' + escAttr(headIcon) + '" alt="' + escAttr(headIconAlt) + '" title="' + escAttr(headIconAlt) + '" loading="lazy">' +
         '<div class="qname">' + escHtml(t.name) + '</div>' +
         (t.isHideout ? "" : '<div class="qlevel">' + i18n("levelBadgePrefix") + ' ' + (t.minPlayerLevel || 1) + '</div>');
+      head.querySelector(".qname").addEventListener("click", function(){ openModal(t); });
       card.appendChild(head);
 
       if(t.isHideout && t.hideoutTraderReqs && t.hideoutTraderReqs.length){
@@ -2564,6 +2585,8 @@
     var card = elWorld.querySelector('.qcard[data-task-id="' + cssEscape(taskId) + '"]');
     if(!card) return;
     closeModal();
+    elGuideOverlay.classList.remove("open");
+    closeGallery();
     var x = parseFloat(card.style.left), y = parseFloat(card.style.top);
     var rect = elViewport.getBoundingClientRect();
     state.view.scale = Math.max(state.view.scale, 0.7);
@@ -2826,6 +2849,17 @@
     else if(e.key === "ArrowRight" && zoom.scale === 1) galleryStep(1);
   });
 
+  document.getElementById("btn-gallery-woods-btr").addEventListener("click", function(){
+    closeModal();
+    elGuideOverlay.classList.remove("open");
+    openGallery([{url: "woods_btr.jpg", alt: i18n("galleryWoodsBtrLabel")}], 0);
+  });
+  document.getElementById("btn-gallery-streets-btr").addEventListener("click", function(){
+    closeModal();
+    elGuideOverlay.classList.remove("open");
+    openGallery([{url: "streets_btr.jpg", alt: i18n("galleryStreetsBtrLabel")}], 0);
+  });
+
   // ---- wheel zoom (desktop) ----
   elGalleryImg.addEventListener("wheel", function(e){
     e.preventDefault();
@@ -2929,7 +2963,7 @@
     var dragging = false, startX=0, startY=0, origX=0, origY=0;
 
     elViewport.addEventListener("mousedown", function(e){
-      if(e.target.closest(".qitem-progress") || e.target.closest(".qobjective") || e.target.closest("button") || e.target.tagName === "INPUT") return;
+      if(e.target.closest(".qitem-progress") || e.target.closest(".qobjective") || e.target.closest("button") || e.target.closest(".qname") || e.target.tagName === "INPUT") return;
       dragging = true;
       elViewport.classList.add("dragging");
       startX = e.clientX; startY = e.clientY;
@@ -2972,7 +3006,7 @@
       return Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
     }
     elViewport.addEventListener("touchstart", function(e){
-      if(e.target.closest(".qitem-progress") || e.target.closest(".qobjective") || e.target.closest("button") || e.target.tagName === "INPUT") return;
+      if(e.target.closest(".qitem-progress") || e.target.closest(".qobjective") || e.target.closest("button") || e.target.closest(".qname") || e.target.tagName === "INPUT") return;
       if(e.touches.length === 1){
         dragging = true; pinching = false;
         elViewport.classList.add("dragging");
