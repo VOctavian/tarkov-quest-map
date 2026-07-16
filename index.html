@@ -750,7 +750,7 @@
   #btn-untracked-panel.active{background:var(--danger);color:#fff;border-color:var(--danger);}
 
   /* ---------- Standalone BTR-stop / story-map gallery shortcuts ---------- */
-  #btn-gallery-woods-btr, #btn-gallery-streets-btr, #btn-gallery-story{
+  #btn-gallery-woods-btr, #btn-gallery-streets-btr, #btn-gallery-story, #btn-cultist-recipes{
     position:fixed;left:14px;z-index:210;
     display:flex;align-items:center;gap:7px;
     background:var(--panel-2);color:var(--text);
@@ -762,7 +762,37 @@
   #btn-gallery-woods-btr{top:calc(var(--topbar-h) + var(--traderbar-h) + 164px);}
   #btn-gallery-streets-btr{top:calc(var(--topbar-h) + var(--traderbar-h) + 212px);}
   #btn-gallery-story{top:calc(var(--topbar-h) + var(--traderbar-h) + 260px);}
-  #btn-gallery-woods-btr:hover, #btn-gallery-streets-btr:hover, #btn-gallery-story:hover{border-color:var(--accent);color:var(--accent);}
+  #btn-cultist-recipes{top:calc(var(--topbar-h) + var(--traderbar-h) + 308px);}
+  #btn-gallery-woods-btr:hover, #btn-gallery-streets-btr:hover, #btn-gallery-story:hover, #btn-cultist-recipes:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* ---------- Cultist Circle recipes popup ---------- */
+  #cultist-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;
+    align-items:center;justify-content:center;z-index:220;
+  }
+  #cultist-overlay.open{display:flex;}
+  #cultist-modal{
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    width:1120px;max-width:92vw;max-height:86vh;overflow-y:auto;padding:20px;
+  }
+  #cultist-modal h2{margin:0 0 4px;color:var(--accent);font-size:18px;}
+  #cultist-modal .cultist-intro{color:var(--text-dim);font-size:13px;margin-bottom:14px;}
+  #cultist-modal .cultist-close{
+    position:sticky;float:right;top:0;background:var(--panel-2);border:1px solid var(--border);
+    color:var(--text);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;
+  }
+  .cultist-recipe{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    background:var(--panel-2);border:1px solid var(--border);border-radius:8px;
+    padding:8px 10px;margin-bottom:8px;font-size:12.5px;
+  }
+  .cultist-recipe-side{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:0;}
+  .cultist-item{display:flex;align-items:center;gap:5px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:3px 7px;white-space:nowrap;}
+  .cultist-item img{width:22px;height:22px;object-fit:contain;background:#111;border-radius:4px;flex:0 0 auto;}
+  .cultist-item-count{color:var(--text-dim);font-size:11px;}
+  .cultist-or{color:var(--text-dim);font-size:11px;font-weight:700;}
+  .cultist-arrow{color:var(--accent);font-weight:700;flex:0 0 auto;}
+  .cultist-duration{color:var(--text-dim);font-size:11px;flex:0 0 auto;white-space:nowrap;}
 
   #untracked-panel{
     position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:230;
@@ -1069,6 +1099,15 @@
 <button type="button" id="btn-gallery-woods-btr" data-i18n="galleryWoodsBtrLabel" title="Остановки БТР Лес">Остановки БТР Лес</button>
 <button type="button" id="btn-gallery-streets-btr" data-i18n="galleryStreetsBtrLabel" title="Остановки БТР Улицы Таркова">Остановки БТР Улицы Таркова</button>
 <button type="button" id="btn-gallery-story" data-i18n="galleryStoryLabel" title="Карта сюжеток">Карта сюжеток</button>
+<button type="button" id="btn-cultist-recipes" data-i18n="cultistRecipesBtnLabel" title="Рецепты Круга Сектантов">Рецепты Круга Сектантов</button>
+<div id="cultist-overlay">
+  <div id="cultist-modal">
+    <button class="cultist-close" id="cultist-close-btn" data-i18n="closeLabel">Закрыть ✕</button>
+    <h2 data-i18n="cultistRecipesTitle">Рецепты Круга Сектантов</h2>
+    <div class="cultist-intro" data-i18n="cultistRecipesIntro">Источник: вики Escape from Tarkov.</div>
+    <div id="cultist-recipes-list"></div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -1076,7 +1115,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "34";
+  var APP_VERSION = "35";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1193,6 +1232,12 @@
     galleryWoodsBtrLabel: {ru:"🚌 Остановки БТР Лес", en:"🚌 BTR stops Woods"},
     galleryStreetsBtrLabel: {ru:"🚌 Остановки БТР Улицы Таркова", en:"🚌 BTR stops Streets"},
     galleryStoryLabel: {ru:"📜 Карта сюжеток", en:"📜 Story map"},
+    cultistRecipesBtnLabel: {ru:"🔮 Рецепты Круга Сектантов", en:"🔮 Cultist Circle recipes"},
+    cultistRecipesTitle: {ru:"Рецепты Круга Сектантов", en:"Cultist Circle recipes"},
+    cultistRecipesIntro: {ru:"Источник: вики Escape from Tarkov.", en:"Source: the Escape from Tarkov wiki."},
+    cultistRecipesLoading: {ru:"Загрузка рецептов…", en:"Loading recipes…"},
+    cultistRecipesFailed: {ru:"Не удалось загрузить рецепты.", en:"Failed to load recipes."},
+    cultistOrLabel: {ru:"или", en:"or"},
     itemMaxBtnTitle: {ru:"Отметить максимум", en:"Mark as max"},
     autoCompletePrereqTitle: {ru:"Незавершённые требуемые задания", en:"Incomplete required quests"},
     autoCompletePrereqConfirm: {ru:"Вы выполнили эти задания?", en:"Have you completed these quests?"},
@@ -2962,6 +3007,93 @@
     closeModal();
     elGuideOverlay.classList.remove("open");
     openGallery([{url: "story.webp", alt: i18n("galleryStoryLabel")}], 0);
+  });
+
+  // ---------------- Cultist Circle recipes popup ----------------
+  var elCultistOverlay = document.getElementById("cultist-overlay");
+  var elCultistList = document.getElementById("cultist-recipes-list");
+  var cultistRecipesPromise = null;
+  function loadCultistRecipes(){
+    if(!cultistRecipesPromise){
+      cultistRecipesPromise = fetch("cultist-circle-recipes.json", { cache: "no-cache" })
+        .then(function(r){ return r.ok ? r.json() : []; })
+        .catch(function(){ return null; });
+    }
+    return cultistRecipesPromise;
+  }
+  function buildCultistItemChip(item){
+    var chip = document.createElement("span");
+    chip.className = "cultist-item";
+    chip.innerHTML =
+      '<img src="' + escAttr(item.iconLink) + '" alt="" loading="lazy">' +
+      '<span>' + escHtml(item.name) + '</span>' +
+      (item.count > 1 ? '<span class="cultist-item-count">×' + item.count + '</span>' : '');
+    var chipImg = chip.querySelector("img");
+    // A handful of items only have their big preview image generated on tarkov.dev's
+    // CDN (no small icon variant yet) — fall back to that instead of a broken image.
+    if(item.image512pxLink){
+      chipImg.addEventListener("error", function(){ chipImg.src = item.image512pxLink; }, {once: true});
+    }
+    if(item.id) attachItemTooltip(chipImg, item);
+    return chip;
+  }
+  function buildCultistSide(items, isAlternatives){
+    var side = document.createElement("div");
+    side.className = "cultist-recipe-side";
+    items.forEach(function(item, idx){
+      if(idx > 0){
+        var sep = document.createElement("span");
+        sep.className = isAlternatives ? "cultist-or" : "";
+        sep.textContent = isAlternatives ? i18n("cultistOrLabel") : "+";
+        side.appendChild(sep);
+      }
+      side.appendChild(buildCultistItemChip(item));
+    });
+    return side;
+  }
+  function renderCultistRecipes(recipes){
+    elCultistList.innerHTML = "";
+    if(!recipes || !recipes.length){
+      elCultistList.textContent = i18n("cultistRecipesFailed");
+      return;
+    }
+    recipes.forEach(function(recipe){
+      var row = document.createElement("div");
+      row.className = "cultist-recipe";
+      row.appendChild(buildCultistSide(recipe.inputs, false));
+      var arrow = document.createElement("span");
+      arrow.className = "cultist-arrow";
+      arrow.textContent = "→";
+      row.appendChild(arrow);
+      row.appendChild(buildCultistSide(recipe.outputs, recipe.outputsAreAlternatives));
+      if(recipe.duration){
+        var dur = document.createElement("span");
+        dur.className = "cultist-duration";
+        dur.textContent = recipe.duration;
+        row.appendChild(dur);
+      }
+      elCultistList.appendChild(row);
+    });
+  }
+  document.getElementById("btn-cultist-recipes").addEventListener("click", function(){
+    closeModal();
+    elGuideOverlay.classList.remove("open");
+    closeGallery();
+    elCultistList.textContent = i18n("cultistRecipesLoading");
+    elCultistOverlay.classList.add("open");
+    loadCultistRecipes().then(function(recipes){
+      if(!elCultistOverlay.classList.contains("open")) return;
+      renderCultistRecipes(recipes);
+    });
+  });
+  document.getElementById("cultist-close-btn").addEventListener("click", function(){
+    elCultistOverlay.classList.remove("open");
+  });
+  elCultistOverlay.addEventListener("click", function(e){
+    if(e.target === elCultistOverlay) elCultistOverlay.classList.remove("open");
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && elCultistOverlay.classList.contains("open")) elCultistOverlay.classList.remove("open");
   });
 
   // ---- wheel zoom (desktop) ----
