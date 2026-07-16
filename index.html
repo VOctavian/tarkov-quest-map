@@ -415,6 +415,7 @@
     max-width:90vw;max-height:80vh;min-width:65vw;min-height:65vh;
     width:auto;height:auto;object-fit:contain;border-radius:6px;
     touch-action:none;user-select:none;cursor:zoom-in;transition:transform .12s ease;
+    -webkit-user-drag:none;user-drag:none;
   }
   #gallery-img.zoomed{cursor:grab;}
   #gallery-img.dragging{cursor:grabbing;transition:none;}
@@ -748,8 +749,8 @@
   #btn-untracked-panel:hover{border-color:var(--danger);color:var(--danger);}
   #btn-untracked-panel.active{background:var(--danger);color:#fff;border-color:var(--danger);}
 
-  /* ---------- Standalone BTR-stop gallery shortcuts ---------- */
-  #btn-gallery-woods-btr, #btn-gallery-streets-btr{
+  /* ---------- Standalone BTR-stop / story-map gallery shortcuts ---------- */
+  #btn-gallery-woods-btr, #btn-gallery-streets-btr, #btn-gallery-story{
     position:fixed;left:14px;z-index:210;
     display:flex;align-items:center;gap:7px;
     background:var(--panel-2);color:var(--text);
@@ -760,7 +761,8 @@
   }
   #btn-gallery-woods-btr{top:calc(var(--topbar-h) + var(--traderbar-h) + 164px);}
   #btn-gallery-streets-btr{top:calc(var(--topbar-h) + var(--traderbar-h) + 212px);}
-  #btn-gallery-woods-btr:hover, #btn-gallery-streets-btr:hover{border-color:var(--accent);color:var(--accent);}
+  #btn-gallery-story{top:calc(var(--topbar-h) + var(--traderbar-h) + 260px);}
+  #btn-gallery-woods-btr:hover, #btn-gallery-streets-btr:hover, #btn-gallery-story:hover{border-color:var(--accent);color:var(--accent);}
 
   #untracked-panel{
     position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:230;
@@ -930,7 +932,7 @@
 <div id="gallery-overlay">
   <button class="gallery-close" id="gallery-close-btn" data-i18n="closeLabel">Закрыть ✕</button>
   <button class="gallery-nav" id="gallery-prev">‹</button>
-  <img id="gallery-img" alt="">
+  <img id="gallery-img" alt="" draggable="false">
   <button class="gallery-nav" id="gallery-next">›</button>
   <div id="gallery-caption"></div>
   <div id="gallery-hint" data-i18n="galleryZoomHint">Колесо мыши / щипок — приблизить, двойной клик — сброс</div>
@@ -1066,6 +1068,7 @@
 
 <button type="button" id="btn-gallery-woods-btr" data-i18n="galleryWoodsBtrLabel" title="Остановки БТР Лес">Остановки БТР Лес</button>
 <button type="button" id="btn-gallery-streets-btr" data-i18n="galleryStreetsBtrLabel" title="Остановки БТР Улицы Таркова">Остановки БТР Улицы Таркова</button>
+<button type="button" id="btn-gallery-story" data-i18n="galleryStoryLabel" title="Карта сюжеток">Карта сюжеток</button>
 
 <script>
 (function(){
@@ -1073,7 +1076,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "33";
+  var APP_VERSION = "34";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1189,6 +1192,7 @@
     untrackedPanelRestore: {ru:"Отслеживать", en:"Track"},
     galleryWoodsBtrLabel: {ru:"🚌 Остановки БТР Лес", en:"🚌 BTR stops Woods"},
     galleryStreetsBtrLabel: {ru:"🚌 Остановки БТР Улицы Таркова", en:"🚌 BTR stops Streets"},
+    galleryStoryLabel: {ru:"📜 Карта сюжеток", en:"📜 Story map"},
     itemMaxBtnTitle: {ru:"Отметить максимум", en:"Mark as max"},
     autoCompletePrereqTitle: {ru:"Незавершённые требуемые задания", en:"Incomplete required quests"},
     autoCompletePrereqConfirm: {ru:"Вы выполнили эти задания?", en:"Have you completed these quests?"},
@@ -2954,6 +2958,11 @@
     elGuideOverlay.classList.remove("open");
     openGallery([{url: "streets_btr.jpg", alt: i18n("galleryStreetsBtrLabel")}], 0);
   });
+  document.getElementById("btn-gallery-story").addEventListener("click", function(){
+    closeModal();
+    elGuideOverlay.classList.remove("open");
+    openGallery([{url: "story.webp", alt: i18n("galleryStoryLabel")}], 0);
+  });
 
   // ---- wheel zoom (desktop) ----
   elGalleryImg.addEventListener("wheel", function(e){
@@ -2978,6 +2987,10 @@
   function pointerDist(p1, p2){ return Math.hypot(p1.x - p2.x, p1.y - p2.y); }
   function pointerMid(p1, p2){ return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 }; }
 
+  // Plain <img> elements are natively draggable in most browsers; that HTML5 drag
+  // races our own pointer-based pan and shows the "not-allowed" cursor after a
+  // pixel or two. draggable="false" covers most browsers, this is the fallback.
+  elGalleryImg.addEventListener("dragstart", function(e){ e.preventDefault(); });
   elGalleryImg.addEventListener("pointerdown", function(e){
     elGalleryImg.setPointerCapture(e.pointerId);
     pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
