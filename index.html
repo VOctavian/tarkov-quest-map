@@ -252,7 +252,7 @@
   /* ---------- Modal ---------- */
   #modal-overlay{
     position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;
-    align-items:center;justify-content:center;z-index:100;
+    align-items:center;justify-content:center;z-index:220;
   }
   #modal-overlay.open{display:flex;}
   #modal-wrap{display:flex;align-items:stretch;max-width:92vw;max-height:82vh;}
@@ -570,9 +570,23 @@
   #confirm-ok-btn{background:var(--accent-2);color:#0e1210;font-weight:700;border-color:var(--accent-2);}
   #confirm-ok-btn:hover{filter:brightness(1.1);}
 
+  /* ---------- Left-side floating button column ---------- */
+  #left-buttons-col{
+    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 10px);left:14px;z-index:210;
+    display:flex;flex-direction:column;align-items:flex-start;gap:10px;
+  }
+  /* Shrunk to icon-only pills on mobile while a popup is open, so they never overlap it. */
+  #left-buttons-col.mini > button{padding:8px 10px;font-size:0;gap:0;max-width:none;}
+  #left-buttons-col.mini > #btn-active-panel::before{content:"🎯";font-size:14px;}
+  #left-buttons-col.mini > #btn-items-panel::before{content:"📦";font-size:14px;}
+  #left-buttons-col.mini > #btn-untracked-panel::before{content:"🚫";font-size:14px;}
+  #left-buttons-col.mini > #btn-gallery-woods-btr::before, #left-buttons-col.mini > #btn-gallery-streets-btr::before{content:"🚌";font-size:14px;}
+  #left-buttons-col.mini > #btn-gallery-story::before{content:"📜";font-size:14px;}
+  #left-buttons-col.mini > #btn-cultist-recipes::before{content:"🔮";font-size:14px;}
+  #left-buttons-col.mini > #btn-hideout-recipes::before{content:"🛠";font-size:14px;}
+
   /* ---------- Active quests side panel ---------- */
   #btn-active-panel{
-    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 10px);left:14px;z-index:210;
     display:flex;align-items:center;gap:7px;
     background:var(--panel-2);color:var(--text);
     border:1px solid var(--border);border-radius:22px;padding:8px 15px 8px 12px;
@@ -634,7 +648,6 @@
 
   /* ---------- Needed items side panel ---------- */
   #btn-items-panel{
-    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 58px);left:14px;z-index:210;
     display:flex;align-items:center;gap:7px;
     background:var(--panel-2);color:var(--text);
     border:1px solid var(--border);border-radius:22px;padding:8px 15px 8px 12px;
@@ -739,7 +752,6 @@
 
   /* ---------- Untracked quests side panel ---------- */
   #btn-untracked-panel{
-    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 106px);left:14px;z-index:210;
     display:flex;align-items:center;gap:7px;
     background:var(--panel-2);color:var(--text);
     border:1px solid var(--border);border-radius:22px;padding:8px 15px 8px 12px;
@@ -751,7 +763,6 @@
 
   /* ---------- Standalone BTR-stop / story-map gallery shortcuts ---------- */
   #btn-gallery-woods-btr, #btn-gallery-streets-btr, #btn-gallery-story, #btn-cultist-recipes, #btn-hideout-recipes{
-    position:fixed;left:14px;z-index:210;
     display:flex;align-items:center;gap:7px;
     background:var(--panel-2);color:var(--text);
     border:1px solid var(--border);border-radius:22px;padding:8px 15px;
@@ -759,11 +770,6 @@
     box-shadow:0 3px 10px rgba(0,0,0,.4);
     max-width:190px;text-align:left;
   }
-  #btn-gallery-woods-btr{top:calc(var(--topbar-h) + var(--traderbar-h) + 164px);}
-  #btn-gallery-streets-btr{top:calc(var(--topbar-h) + var(--traderbar-h) + 212px);}
-  #btn-gallery-story{top:calc(var(--topbar-h) + var(--traderbar-h) + 260px);}
-  #btn-cultist-recipes{top:calc(var(--topbar-h) + var(--traderbar-h) + 308px);}
-  #btn-hideout-recipes{top:calc(var(--topbar-h) + var(--traderbar-h) + 356px);}
   #btn-gallery-woods-btr:hover, #btn-gallery-streets-btr:hover, #btn-gallery-story:hover, #btn-cultist-recipes:hover, #btn-hideout-recipes:hover{border-color:var(--accent);color:var(--accent);}
 
   /* ---------- Cultist Circle recipes popup ---------- */
@@ -940,12 +946,19 @@
     #status{order:3;font-size:11px;}
   }
   @media (max-width:480px){
-    #btn-coffee, #btn-feedback, #btn-active-panel, #btn-items-panel, #btn-untracked-panel{padding:8px 10px;font-size:0;gap:0;}
+    #btn-coffee, #btn-feedback, #btn-active-panel, #btn-items-panel, #btn-untracked-panel,
+    #btn-gallery-woods-btr, #btn-gallery-streets-btr, #btn-gallery-story, #btn-cultist-recipes, #btn-hideout-recipes{
+      padding:8px 10px;font-size:0;gap:0;max-width:none;
+    }
     #btn-coffee::before{content:"☕";font-size:16px;}
     #btn-feedback::before{content:"✉️";font-size:14px;}
     #btn-active-panel::before{content:"🎯";font-size:14px;}
     #btn-items-panel::before{content:"📦";font-size:14px;}
     #btn-untracked-panel::before{content:"🚫";font-size:14px;}
+    #btn-gallery-woods-btr::before, #btn-gallery-streets-btr::before{content:"🚌";font-size:14px;}
+    #btn-gallery-story::before{content:"📜";font-size:14px;}
+    #btn-cultist-recipes::before{content:"🔮";font-size:14px;}
+    #btn-hideout-recipes::before{content:"🛠";font-size:14px;}
     #active-panel, #items-panel, #untracked-panel{width:100%;max-width:100%;}
     .trader-toggle{padding:2px 7px 2px 2px;font-size:11px;gap:4px;}
     .trader-toggle img{width:18px;height:18px;}
@@ -1127,7 +1140,16 @@
   </div>
 </div>
 
-<button id="btn-active-panel" data-i18n-title="activePanelBtnTitle" data-i18n="activePanelBtnLabel" title="Список активных заданий">🎯 Активные</button>
+<div id="left-buttons-col">
+  <button id="btn-active-panel" data-i18n-title="activePanelBtnTitle" data-i18n="activePanelBtnLabel" title="Список активных заданий">🎯 Активные</button>
+  <button id="btn-items-panel" data-i18n-title="itemsPanelBtnTitle" data-i18n="itemsPanelBtnLabel" title="Список нужных предметов">📦 Предметы</button>
+  <button id="btn-untracked-panel" data-i18n-title="untrackedPanelBtnTitle" data-i18n="untrackedPanelBtnLabel" title="Список убранных заданий">🚫 Убранные</button>
+  <button type="button" id="btn-gallery-woods-btr" data-i18n="galleryWoodsBtrLabel" title="Остановки БТР Лес">Остановки БТР Лес</button>
+  <button type="button" id="btn-gallery-streets-btr" data-i18n="galleryStreetsBtrLabel" title="Остановки БТР Улицы Таркова">Остановки БТР Улицы Таркова</button>
+  <button type="button" id="btn-gallery-story" data-i18n="galleryStoryLabel" title="Карта сюжеток">Карта сюжеток</button>
+  <button type="button" id="btn-cultist-recipes" data-i18n="cultistRecipesBtnLabel" title="Рецепты Круга Сектантов">Рецепты Круга Сектантов</button>
+  <button type="button" id="btn-hideout-recipes" data-i18n="hideoutRecipesBtnLabel" title="Рецепты убежища">Рецепты убежища</button>
+</div>
 <div id="active-panel">
   <div id="active-panel-head">
     <span id="active-panel-title">Активные задания</span>
@@ -1144,7 +1166,6 @@
   <div id="active-panel-body"></div>
 </div>
 
-<button id="btn-items-panel" data-i18n-title="itemsPanelBtnTitle" data-i18n="itemsPanelBtnLabel" title="Список нужных предметов">📦 Предметы</button>
 <div id="items-panel">
   <div id="items-panel-head">
     <span id="items-panel-title">Предметы</span>
@@ -1160,7 +1181,6 @@
   <div id="items-panel-body"></div>
 </div>
 
-<button id="btn-untracked-panel" data-i18n-title="untrackedPanelBtnTitle" data-i18n="untrackedPanelBtnLabel" title="Список убранных заданий">🚫 Убранные</button>
 <div id="untracked-panel">
   <div id="untracked-panel-head">
     <span data-i18n="untrackedPanelTitle">Убранные задания</span>
@@ -1169,10 +1189,6 @@
   <div id="untracked-panel-body"></div>
 </div>
 
-<button type="button" id="btn-gallery-woods-btr" data-i18n="galleryWoodsBtrLabel" title="Остановки БТР Лес">Остановки БТР Лес</button>
-<button type="button" id="btn-gallery-streets-btr" data-i18n="galleryStreetsBtrLabel" title="Остановки БТР Улицы Таркова">Остановки БТР Улицы Таркова</button>
-<button type="button" id="btn-gallery-story" data-i18n="galleryStoryLabel" title="Карта сюжеток">Карта сюжеток</button>
-<button type="button" id="btn-cultist-recipes" data-i18n="cultistRecipesBtnLabel" title="Рецепты Круга Сектантов">Рецепты Круга Сектантов</button>
 <div id="cultist-overlay">
   <div id="cultist-modal">
     <button class="cultist-close" id="cultist-close-btn" data-i18n="closeLabel">Закрыть ✕</button>
@@ -1182,7 +1198,6 @@
   </div>
 </div>
 
-<button type="button" id="btn-hideout-recipes" data-i18n="hideoutRecipesBtnLabel" title="Рецепты убежища">Рецепты убежища</button>
 <div id="hideout-recipes-overlay">
   <div id="hideout-recipes-modal">
     <button class="cultist-close" id="hideout-recipes-close-btn" data-i18n="closeLabel">Закрыть ✕</button>
@@ -1209,7 +1224,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "37";
+  var APP_VERSION = "38";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -2841,6 +2856,14 @@
     closeModal();
     elGuideOverlay.classList.remove("open");
     closeGallery();
+    if(window.matchMedia("(max-width:480px)").matches){
+      [["active-panel", "btn-active-panel"], ["items-panel", "btn-items-panel"], ["untracked-panel", "btn-untracked-panel"]].forEach(function(pair){
+        var panel = document.getElementById(pair[0]);
+        var btn = document.getElementById(pair[1]);
+        if(panel) panel.classList.remove("open");
+        if(btn) btn.classList.remove("active");
+      });
+    }
     var x = parseFloat(card.style.left), y = parseFloat(card.style.top);
     var rect = elViewport.getBoundingClientRect();
     state.view.scale = Math.max(state.view.scale, 0.7);
@@ -3464,6 +3487,28 @@
   document.addEventListener("keydown", function(e){
     if(e.key === "Escape" && elHideoutRecipesOverlay.classList.contains("open")) elHideoutRecipesOverlay.classList.remove("open");
   });
+
+  // ---- shrink left-side buttons to icon-only pills on mobile while any popup is open,
+  // so the always-visible button column never overlaps the popup content ----
+  var elLeftButtonsCol = document.getElementById("left-buttons-col");
+  var POPUP_OVERLAY_IDS = [
+    "modal-overlay", "cultist-overlay", "hideout-recipes-overlay",
+    "coffee-overlay", "feedback-overlay", "guide-overlay", "gallery-overlay", "confirm-overlay"
+  ];
+  function updateLeftButtonsMiniState(){
+    var isMobile = window.matchMedia("(max-width:760px)").matches;
+    var anyPopupOpen = POPUP_OVERLAY_IDS.some(function(id){
+      var el = document.getElementById(id);
+      return el && el.classList.contains("open");
+    });
+    elLeftButtonsCol.classList.toggle("mini", isMobile && anyPopupOpen);
+  }
+  var popupOverlayObserver = new MutationObserver(updateLeftButtonsMiniState);
+  POPUP_OVERLAY_IDS.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) popupOverlayObserver.observe(el, { attributes: true, attributeFilter: ["class"] });
+  });
+  window.addEventListener("resize", updateLeftButtonsMiniState);
 
   // ---- wheel zoom (desktop) ----
   elGalleryImg.addEventListener("wheel", function(e){
