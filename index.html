@@ -1224,9 +1224,18 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "38";
+  var APP_VERSION = "39";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
+
+  // ---------------- Telemetry: custom GoatCounter events ----------------
+  // Fires alongside the automatic pageview GoatCounter already sends; safe no-op
+  // if the script is blocked (adblock) or hasn't loaded yet.
+  function trackEvent(name){
+    if(window.goatcounter && typeof window.goatcounter.count === "function"){
+      window.goatcounter.count({ path: name, event: true });
+    }
+  }
 
   // ---------------- Localization ----------------
   var LS_LANG = "tarkov_lang_v1";
@@ -1407,6 +1416,7 @@
       if(el.dataset.lang === langState.lang) return;
       langState.lang = el.dataset.lang;
       saveJSON(LS_LANG, langState.lang);
+      trackEvent("lang-switch-" + langState.lang);
       location.reload();
     });
   });
@@ -3130,16 +3140,19 @@
     closeModal();
     elGuideOverlay.classList.remove("open");
     openGallery([{url: "woods_btr.jpg", alt: i18n("galleryWoodsBtrLabel")}], 0);
+    trackEvent("open-gallery-woods-btr");
   });
   document.getElementById("btn-gallery-streets-btr").addEventListener("click", function(){
     closeModal();
     elGuideOverlay.classList.remove("open");
     openGallery([{url: "streets_btr.jpg", alt: i18n("galleryStreetsBtrLabel")}], 0);
+    trackEvent("open-gallery-streets-btr");
   });
   document.getElementById("btn-gallery-story").addEventListener("click", function(){
     closeModal();
     elGuideOverlay.classList.remove("open");
     openGallery([{url: "story.webp", alt: i18n("galleryStoryLabel")}], 0);
+    trackEvent("open-gallery-story");
   });
 
   // ---------------- Cultist Circle recipes popup ----------------
@@ -3214,6 +3227,7 @@
     closeGallery();
     elCultistList.textContent = i18n("cultistRecipesLoading");
     elCultistOverlay.classList.add("open");
+    trackEvent("open-cultist-recipes");
     loadCultistRecipes().then(function(recipes){
       if(!elCultistOverlay.classList.contains("open")) return;
       renderCultistRecipes(recipes);
@@ -3444,6 +3458,7 @@
     if(elHideoutRecipesSearchOut) elHideoutRecipesSearchOut.value = "";
     renderHideoutRecipesList();
     elHideoutRecipesOverlay.classList.add("open");
+    trackEvent("open-hideout-recipes");
   });
   if(elHideoutRecipesSearchIn){
     elHideoutRecipesSearchIn.addEventListener("input", function(){
@@ -4096,6 +4111,7 @@
       renderActivePanel();
       panel.classList.add("open");
       btn.classList.add("active");
+      trackEvent("open-active-panel");
     }
     function closePanel(){
       panel.classList.remove("open");
@@ -4213,6 +4229,7 @@
       renderUntrackedPanel();
       panel.classList.add("open");
       btn.classList.add("active");
+      trackEvent("open-untracked-panel");
     }
     function closePanel(){
       panel.classList.remove("open");
@@ -4487,6 +4504,7 @@
       renderTraderLevelsRow();
       panel.classList.add("open");
       btn.classList.add("active");
+      trackEvent("open-items-panel");
     }
     function closePanel(){
       panel.classList.remove("open");
