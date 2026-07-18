@@ -1243,7 +1243,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "41";
+  var APP_VERSION = "42";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1352,6 +1352,7 @@
     activePanelTitle: {ru:"Активные задания", en:"Active quests"},
     activePanelByTrader: {ru:"По торговцам", en:"By trader"},
     activePanelByMap: {ru:"По картам", en:"By map"},
+    activePanelMapCountTitle: {ru:"Только на этой карте + доступны также на других картах", en:"Only on this map + also available on other maps"},
     activePanelNoMap: {ru:"Без привязки к карте", en:"No specific map"},
     activePanelEmpty: {ru:"Нет активных заданий", en:"No active quests"},
     activePanelLevelLabel: {ru:"Мой уровень", en:"My level"},
@@ -4092,7 +4093,9 @@
     return order.map(function(key){
       var b = mapBucket[key];
       b.tasks.sort(function(x, y){ return x.name.localeCompare(y.name); });
-      return {key: key, label: b.label, tasks: b.tasks};
+      var soloCount = b.tasks.filter(function(t){ return !t.questMaps || t.questMaps.length <= 1; }).length;
+      var sharedCount = b.tasks.length - soloCount;
+      return {key: key, label: b.label, tasks: b.tasks, soloCount: soloCount, sharedCount: sharedCount};
     });
   }
 
@@ -4111,10 +4114,14 @@
       var groupEl = document.createElement("div");
       groupEl.className = "active-group" + (activePanelOpenGroups[groupKey] ? " open" : "");
 
+      var isSplitCount = activePanelGroupMode === "map" && g.sharedCount;
+      var countText = isSplitCount ? (g.soloCount + "+" + g.sharedCount) : String(g.tasks.length);
+      var countTitleAttr = isSplitCount ? ' title="' + escAttr(i18n("activePanelMapCountTitle")) + '"' : "";
+
       var head = document.createElement("button");
       head.type = "button";
       head.className = "active-group-head";
-      head.innerHTML = '<span>' + escHtml(g.label) + ' <span class="active-group-count">(' + g.tasks.length + ')</span></span><span class="chev">▸</span>';
+      head.innerHTML = '<span>' + escHtml(g.label) + ' <span class="active-group-count"' + countTitleAttr + '>(' + countText + ')</span></span><span class="chev">▸</span>';
       head.addEventListener("click", function(){
         activePanelOpenGroups[groupKey] = !activePanelOpenGroups[groupKey];
         groupEl.classList.toggle("open", activePanelOpenGroups[groupKey]);
