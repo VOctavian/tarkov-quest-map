@@ -886,6 +886,111 @@
   .hideout-recipe-item-body{display:none;padding:8px 4px 2px 10px;}
   .hideout-recipe-item.open .hideout-recipe-item-body{display:block;}
 
+  /* ---------- Story map (key decisions) popup ---------- */
+  #story-map-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;
+    align-items:center;justify-content:center;z-index:220;
+  }
+  #story-map-overlay.open{display:flex;}
+  #story-map-modal{
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    width:900px;max-width:92vw;max-height:86vh;overflow-y:auto;padding:20px;
+  }
+  #story-map-modal h2{margin:0 0 4px;color:var(--accent);font-size:18px;}
+  #story-map-legend{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 16px;}
+  .story-map-legend-item{
+    display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-dim);
+    background:var(--panel-2);border:1px solid var(--border);border-radius:14px;padding:4px 10px 4px 6px;
+  }
+  .story-map-legend-swatch{width:12px;height:12px;border-radius:3px;flex:0 0 auto;}
+  #story-map-tree{border-left:2px solid var(--border);padding-left:14px;}
+  .story-map-node{margin:0 0 8px;}
+  .story-map-node-box{
+    display:inline-block;max-width:100%;padding:8px 12px;border-radius:7px;font-size:13px;line-height:1.4;
+    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+  }
+  .story-map-node-box.decision{background:#2a1c22;border-color:#7a3f52;color:#f3c8d6;font-weight:600;}
+  .story-map-node-box.achievement{background:#182a1e;border-color:#3f7a52;color:#bfe8cc;}
+  .story-map-node-box.escape{background:#2e2312;border-color:#8a6a2a;color:#f0d9a6;}
+  .story-map-node-box.note{background:transparent;border:none;color:var(--text-dim);font-size:11.5px;font-style:italic;padding:2px 4px;}
+  .story-map-node-box.ending{
+    display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;
+    background:var(--panel-2);border:2px solid var(--accent);color:var(--accent);
+  }
+  .story-map-node-box .story-map-tag{
+    display:inline-block;margin-right:6px;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;
+    background:var(--panel);border:1px solid var(--border);color:var(--text-dim);vertical-align:middle;
+  }
+  .story-map-children{margin:8px 0 0 10px;padding-left:14px;border-left:2px solid var(--border);}
+  .story-map-branches{margin:8px 0 0;display:flex;flex-direction:column;gap:14px;}
+  .story-map-branch{padding:8px 0 8px 12px;border-left:2px dashed var(--border);}
+  #story-map-source-link{margin-top:16px;font-size:12px;}
+  #story-map-source-link a{color:var(--text-dim);}
+  #story-map-source-link a:hover{color:var(--accent);}
+  #story-map-view-toggle{margin:0 0 14px;}
+  #story-map-diagram{display:none;}
+  .story-diagram-wrap{
+    overflow-x:auto;overflow-y:visible;padding:20px 16px;background:#0c0e10;border-radius:8px;
+  }
+  .story-diagram-chain{display:flex;flex-direction:column;align-items:center;width:max-content;margin:0 auto;}
+  .story-diagram-box{
+    width:190px;box-sizing:border-box;padding:8px 10px;border-radius:4px;font-size:11px;line-height:1.35;
+    text-align:center;background:#ececec;color:#161616;border:1px solid #8a8a8a;box-shadow:0 1px 4px rgba(0,0,0,.5);
+  }
+  .story-diagram-box.decision{background:#f2c9d3;border-color:#c98a9c;font-weight:700;}
+  .story-diagram-box.achievement{background:#d7ebd0;border-color:#8fbf87;}
+  .story-diagram-box.escape{background:#fbe1bf;border-color:#cf9d55;}
+  .story-diagram-box.note{
+    width:auto;max-width:220px;background:transparent;border:none;box-shadow:none;
+    color:#c7ac6e;font-style:italic;font-size:10px;padding:2px 4px;
+  }
+  .story-diagram-box.ending{
+    width:150px;background:#1a1a1a;color:#f2d98a;border:2px solid #d8b354;font-weight:700;font-size:12px;
+  }
+  .story-diagram-box.ending > div:first-child{font-size:26px;line-height:1.1;}
+  .story-diagram-tag{
+    display:inline-block;margin-bottom:3px;font-size:9px;font-weight:800;padding:0 5px;border-radius:8px;
+    background:#c0392b;color:#fff;
+  }
+  .story-diagram-arrow{width:2px;height:16px;background:#a83a3a;position:relative;flex:0 0 auto;}
+  .story-diagram-arrow::after{
+    content:"";position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);
+    border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #a83a3a;
+  }
+  .story-diagram-fork{display:flex;gap:20px;align-items:flex-start;position:relative;padding-top:16px;margin-top:-1px;}
+  .story-diagram-lane{display:flex;flex-direction:column;align-items:center;position:relative;}
+  .story-diagram-lane::before{content:"";position:absolute;top:0;left:50%;width:2px;height:16px;background:#a83a3a;}
+
+  #story-map-timeline{display:none;}
+  .story-timeline-chain{position:relative;padding-left:22px;}
+  .story-timeline-chain::before{content:"";position:absolute;left:5px;top:4px;bottom:4px;width:2px;background:var(--border);}
+  .story-timeline-item{position:relative;margin-bottom:10px;}
+  .story-timeline-dot{
+    position:absolute;left:-22px;top:3px;width:11px;height:11px;border-radius:50%;
+    background:var(--text-dim);border:2px solid var(--panel);box-shadow:0 0 0 1px var(--border);
+  }
+  .story-timeline-dot.decision{background:#c76b86;}
+  .story-timeline-dot.achievement{background:#5aa17a;}
+  .story-timeline-dot.escape{background:#c79a4a;}
+  .story-timeline-dot.ending{background:var(--accent);width:15px;height:15px;left:-24px;top:1px;}
+  .story-timeline-card{
+    display:inline-block;background:var(--panel-2);border:1px solid var(--border);border-left:3px solid var(--border);
+    border-radius:6px;padding:6px 10px;font-size:12.5px;line-height:1.4;color:var(--text);
+  }
+  .story-timeline-card.decision{border-left-color:#c76b86;font-weight:700;}
+  .story-timeline-card.achievement{border-left-color:#5aa17a;color:#bfe8cc;}
+  .story-timeline-card.escape{border-left-color:#c79a4a;color:#f0d9a6;}
+  .story-timeline-card.note{
+    background:transparent;border:none;padding:1px 0 1px 2px;font-size:11px;font-style:italic;color:var(--text-dim);
+  }
+  .story-timeline-card.ending{border:1px solid var(--accent);border-left:4px solid var(--accent);color:var(--accent);font-weight:700;}
+  .story-timeline-tag{
+    display:inline-block;margin-right:6px;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:8px;
+    background:var(--panel);border:1px solid var(--border);color:var(--text-dim);vertical-align:middle;
+  }
+  .story-timeline-forks{display:flex;flex-direction:column;gap:12px;margin:8px 0 10px 22px;}
+  .story-timeline-fork-lane{border:1px dashed var(--border);border-radius:8px;padding:10px 12px 2px;}
+
   #untracked-panel{
     position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:230;
     background:var(--panel);border-right:1px solid var(--border);
@@ -1237,13 +1342,32 @@
   </div>
 </div>
 
+<div id="story-map-overlay">
+  <div id="story-map-modal">
+    <button class="cultist-close" id="story-map-close-btn" data-i18n="closeLabel">Закрыть ✕</button>
+    <h2 data-i18n="storyMapTitle">Карта сюжетной линии</h2>
+    <div class="cultist-intro" data-i18n="storyMapIntro">Ключевые решения и точки невозврата основной сюжетной линии, ведущие к одной из 4 концовок.</div>
+    <div class="cultist-intro" data-i18n="storyMapCredit">Составлено @callsign_smokey (a.k.a. Kay) · перевод Mr.Souer · воспроизведено вручную по скриншоту схемы для читаемости и перевода.</div>
+    <div id="story-map-legend"></div>
+    <div id="story-map-view-toggle" class="lang-switch">
+      <button type="button" class="lang-opt active" data-view="list" data-i18n="storyMapViewList">Список</button>
+      <button type="button" class="lang-opt" data-view="diagram" data-i18n="storyMapViewDiagram">Схема</button>
+      <button type="button" class="lang-opt" data-view="timeline" data-i18n="storyMapViewTimeline">Таймлайн</button>
+    </div>
+    <div id="story-map-tree"></div>
+    <div id="story-map-diagram"></div>
+    <div id="story-map-timeline"></div>
+    <div id="story-map-source-link"><a href="story.webp" target="_blank" rel="noopener" data-i18n="storyMapSourceLink">Открыть оригинальный скриншот схемы</a></div>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "42";
+  var APP_VERSION = "43";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1370,6 +1494,17 @@
     galleryWoodsBtrLabel: {ru:"🚌 Остановки БТР Лес", en:"🚌 BTR stops Woods"},
     galleryStreetsBtrLabel: {ru:"🚌 Остановки БТР Улицы Таркова", en:"🚌 BTR stops Streets"},
     galleryStoryLabel: {ru:"📜 Карта сюжеток", en:"📜 Story map"},
+    storyMapTitle: {ru:"Карта сюжетной линии", en:"Storyline map"},
+    storyMapIntro: {ru:"Ключевые решения и точки невозврата основной сюжетной линии, ведущие к одной из 4 концовок.", en:"Key decisions and points of no return in the main storyline, leading to one of 4 endings."},
+    storyMapCredit: {ru:"Составлено @callsign_smokey (a.k.a. Kay) · перевод Mr.Souer · воспроизведено вручную по скриншоту схемы для читаемости и перевода.", en:"Compiled by @callsign_smokey (a.k.a. Kay) · translation by Mr.Souer · manually reproduced from the diagram screenshot for readability and translation."},
+    storyMapSourceLink: {ru:"Открыть оригинальный скриншот схемы", en:"Open the original diagram screenshot"},
+    storyMapViewList: {ru:"Список", en:"List"},
+    storyMapViewDiagram: {ru:"Схема", en:"Diagram"},
+    storyMapViewTimeline: {ru:"Таймлайн", en:"Timeline"},
+    storyMapLegendDecision: {ru:"Точки важных решений и точки невозврата", en:"Key decision points / points of no return"},
+    storyMapLegendAchievement: {ru:"Опциональные, секретные достижения", en:"Optional, secret achievements"},
+    storyMapLegendNote: {ru:"Пути развития событий / уточнения", en:"Event branch notes / clarifications"},
+    storyMapLegendEscape: {ru:"Достижения за побег из Таркова", en:"Escape from Tarkov achievements"},
     cultistRecipesBtnLabel: {ru:"🔮 Рецепты Круга Сектантов", en:"🔮 Cultist Circle recipes"},
     cultistRecipesTitle: {ru:"Рецепты Круга Сектантов", en:"Cultist Circle recipes"},
     cultistRecipesIntro: {ru:"Источник: вики Escape from Tarkov.", en:"Source: the Escape from Tarkov wiki."},
@@ -3172,8 +3307,10 @@
   document.getElementById("btn-gallery-story").addEventListener("click", function(){
     closeModal();
     elGuideOverlay.classList.remove("open");
-    openGallery([{url: "story.webp", alt: i18n("galleryStoryLabel")}], 0);
-    trackEvent("open-gallery-story");
+    closeGallery();
+    renderStoryMap();
+    document.getElementById("story-map-overlay").classList.add("open");
+    trackEvent("open-story-map");
   });
 
   // ---------------- Cultist Circle recipes popup ----------------
@@ -3560,7 +3697,7 @@
   // so the always-visible button column never overlaps the popup content ----
   var elLeftButtonsCol = document.getElementById("left-buttons-col");
   var POPUP_OVERLAY_IDS = [
-    "modal-overlay", "cultist-overlay", "hideout-recipes-overlay",
+    "modal-overlay", "cultist-overlay", "hideout-recipes-overlay", "story-map-overlay",
     "coffee-overlay", "feedback-overlay", "guide-overlay", "gallery-overlay", "confirm-overlay"
   ];
   function updateLeftButtonsMiniState(){
@@ -3577,6 +3714,287 @@
     if(el) popupOverlayObserver.observe(el, { attributes: true, attributeFilter: ["class"] });
   });
   window.addEventListener("resize", updateLeftButtonsMiniState);
+
+  // ---------------- Story map (key decisions) popup ----------------
+  // Manually transcribed from story.webp (a community-made flowchart by
+  // @callsign_smokey / Mr.Souer) so the content can be searched, read at
+  // any zoom level, and shown in both languages. The original screenshot
+  // stays linked at the bottom of the popup for cross-checking, since a
+  // hand-transcription of a diagram this dense can't be guaranteed 100%
+  // pixel-perfect against the source.
+  var STORY_MAP_LEGEND = [
+    {cls: "decision", key: "storyMapLegendDecision"},
+    {cls: "achievement", key: "storyMapLegendAchievement"},
+    {cls: "note", key: "storyMapLegendNote"},
+    {cls: "escape", key: "storyMapLegendEscape"}
+  ];
+  var STORY_MAP_DATA = [
+    {type: "step", ru: "Забрать кейс из упавшего самолёта в Лесу", en: "Retrieve the case from the crashed plane on Woods", branches: [
+      [
+        {type: "decision", ru: "Оставить кейс у себя", en: "Keep the case"},
+        {type: "step", ru: "Открыть кейс (найдя подавитель сигналов на Лабе)", en: "Open the case (after finding the signal jammer on Labs)"},
+        {type: "note", ru: "Крафт ~22 часа на Верстаке", en: "Craft ~22h at the Workbench"},
+        {type: "step", ru: "Кейс открыт", en: "Case opened", branches: [
+          [
+            {type: "decision", ru: "Отказаться от сотрудничества с мистером Керманом", en: "Refuse to cooperate with Mr. Kerman"},
+            {type: "step", ru: "Использовать карту из кейса у входа в Терминал", en: "Use the card from the case at the Terminal entrance"},
+            {type: "step", ru: "Карта не работает — просим помощи у Прапора", en: "The card doesn't work — ask Prapor for help"},
+            {type: "note", ru: "Если вы (ранее) отдали Прапору кейс — он попросит 300кк и на этом всё. Если не отдали — попросит 500кк и даёт доп. задания (продолжение ниже).", en: "If you (earlier) gave Prapor the case — he asks for 300 million and that's it. If not — he asks for 500 million and gives extra tasks (continued below)."},
+            {type: "step", ru: "Найти отчёты об исследованиях TerraGroup на Лабе", en: "Find TerraGroup research reports on Labs"},
+            {type: "note", ru: "Крафт ~3 часа в Разведцентре", en: "Craft ~3h at the Intelligence Center"},
+            {type: "step", ru: "Отдать флешку с данными Прапору после крафта", en: "Give the data flash drive to Prapor after crafting"},
+            {type: "achievement", ru: "Если уложились быстрее 72 часов — достижение «Я — скорость»", en: 'If completed faster than 72 hours — achievement "I Am Speed"'},
+            {type: "note", ru: "Если не успели за 72 часа — Прапор потребует контейнер КАППА", en: "If not completed within 72 hours — Prapor demands the KAPPA container instead"},
+            {type: "step", ru: "Убить 50 любых целей на Улицах Таркова", en: "Kill 50 any targets on Streets of Tarkov"},
+            {type: "step", ru: "Убить 4 ЧВК за один рейд и выжить в этом рейде", en: "Kill 4 PMCs in one raid and survive that raid"},
+            {type: "step", ru: "Прапор выдаёт «записку с деньгами» — проход в Терминал", en: 'Prapor gives you a "note with money" — Terminal access'},
+            {type: "achievement", ru: "Достижение «Лёгкий путь»", en: 'Achievement "The Easy Way"'},
+            {type: "step", ru: "Поднять репутацию со Скупщиком до уровня 4.0", en: "Raise Fence reputation to level 4.0"},
+            {type: "step", ru: "Совершить совместный выход на Лесу и Резерве", en: "Complete a joint raid on Woods and Reserve", tag: "PvP"},
+            {type: "step", ru: "Поднять репутацию с водителем БТР до уровня 0.4 (нужно выполнить ВСЕ его задания)", en: "Raise the BTR driver's reputation to level 0.4 (must complete ALL his tasks)"},
+            {type: "note", ru: "Если провалить задания водителя БТР (выбрав сторону Лыжника) — этот путь становится недоступен", en: "If you fail the BTR driver's tasks (by siding with Skier) — this path becomes unavailable"},
+            {type: "step", ru: "Построить Солнечную батарею в убежище", en: "Build the Solar Power station in the Hideout"},
+            {type: "step", ru: "Скрафтить финальную ключ-карту с хеш-кодами от Кермана", en: "Craft the final keycard with Kerman's hash codes"},
+            {type: "note", ru: "Крафт карты ~5 часов в Разведцентре — для каждой попытки нужна новая карта", en: "Card craft ~5h at the Intelligence Center — a new card is needed for every attempt"},
+            {type: "escape", ru: "Подойти к интеркому портового Терминала с 22:00 до 4:00, нажать кнопку, убрать оружие в рюкзак у ворот и передать «записку с деньгами» от Прапора, перейти на Терминал", en: 'Approach the port Terminal intercom between 22:00–4:00, press the button, holster your weapon at the gates, hand over Prapor\'s "note with money", cross into the Terminal'},
+            {type: "escape", ru: "Сбежать из Таркова. Если попытка провалена — нужно купить новую записку у Прапора за 5кк (за раз выдаётся 2 штуки)", en: "Escape Tarkov. If the attempt fails, buy a new note from Prapor for 5 million (2 are issued per purchase)"},
+            {type: "ending", ru: "Концовка «Выживший»", en: 'Ending "Survivor"', icon: "🧟"}
+          ],
+          [
+            {type: "decision", ru: "Сотрудничать с мистером Керманом", en: "Cooperate with Mr. Kerman"},
+            {type: "step", ru: "Найти «Мастер-ключ» на Лабе", en: 'Find the "Master Key" on Labs'},
+            {type: "step", ru: "Не найти цифровизатор RFID-карт на Лабе и поговорить с Механиком", en: "Fail to find the RFID card digitizer on Labs and talk to Mechanic"},
+            {type: "step", ru: "Заплатить Механику 40 BTC за информацию", en: "Pay Mechanic 40 BTC for information"},
+            {type: "step", ru: "Получить ключ от квартиры и забрать там шифровальщик RFID-карт", en: "Get the apartment key and retrieve the RFID card encoder there"},
+            {type: "step", ru: "Активировать RFID-карту на имя Крылова из кейса", en: "Activate the RFID card in Krylov's name from the case"},
+            {type: "note", ru: "Крафт ~22 часа в Разведцентре", en: "Craft ~22h at the Intelligence Center"},
+            {type: "step", ru: "Использовать активированную ключ-карту в интеркоме на Берегу", en: "Use the activated keycard at the intercom on Shoreline", branches: [
+              [
+                {type: "decision", ru: "Помочь мистеру Керману собрать компромат на TerraGroup", en: "Help Mr. Kerman gather dirt on TerraGroup"},
+                {type: "note", ru: "Убедитесь, что прочитали ВСЕ записки и прослушали ВСЕ аудиокассеты, найденные по квестам", en: "Make sure you've read ALL notes and listened to ALL audio cassettes found during quests"},
+                {type: "step", ru: "Выполнить ВСЕ оставшиеся сюжетные задания", en: "Complete ALL remaining storyline tasks"},
+                {type: "step", ru: "Дождаться, когда доверенное лицо Кермана выйдет на связь", en: "Wait for Kerman's confidant to make contact"},
+                {type: "step", ru: "Убить 5 ЧВК за один рейд, не убивая Диких, на Берегу и Развязке", en: "Kill 5 PMCs in one raid without killing Scavs, on Shoreline and Interchange", tag: "PvE"},
+                {type: "step", ru: "Передать 40 комплектов ремонта брони/оружия (100% прочности; галочка «найдено в рейде» не нужна)", en: 'Hand over 40 armor/weapon repair kits (100% durability; "found in raid" not required)'},
+                {type: "step", ru: "Передать на выбор любой защищённый контейнер — Гамма, Тета или Эпсилон", en: "Hand over any secure container of your choice — Gamma, Theta, or Epsilon"},
+                {type: "step", ru: "Передать 50 предметов военной электроники", en: "Hand over 50 military electronics items"},
+                {type: "step", ru: "Забрать «Кейс с био-оружием» на Резерве и передать его Прапору", en: 'Retrieve the "Case with a bio-weapon" on Reserve and hand it to Prapor'},
+                {type: "achievement", ru: "Достижение «А оно взорвётся?»", en: 'Achievement "Will It Blow Up?"'},
+                {type: "step", ru: "Передать Прапору 1 000 000 $", en: "Hand Prapor $1,000,000"},
+                {type: "step", ru: "Подождать 48 часов и получить от Прапора хеш-флешку", en: "Wait 48 hours and receive a hash flash drive from Prapor"},
+                {type: "step", ru: "Построить Солнечную батарею в убежище", en: "Build the Solar Power station in the Hideout"},
+                {type: "step", ru: "Скрафтить финальную ключ-карту с хеш-кодами Прапора", en: "Craft the final keycard with Prapor's hash codes"},
+                {type: "escape", ru: "Подойти к интеркому портового Терминала с 22:00 до 4:00, провести ключ-картой, убрать оружие в рюкзак, подойти к воротам, активировать переход и перейти на Терминал", en: "Approach the port Terminal intercom between 22:00–4:00, swipe the keycard, holster your weapon, approach the gates, activate the crossing and cross into the Terminal"},
+                {type: "escape", ru: "Сбежать из Таркова. Если попытка провалена — карту нужно крафтить заново (~11 часов каждый раз, нужна чистая RFID-карта)", en: "Escape Tarkov. If the attempt fails, the card must be crafted again (~11h each time, a blank RFID card is required)"},
+                {type: "ending", ru: "Концовка «Спаситель»", en: 'Ending "Savior"', icon: "🌍"}
+              ],
+              [
+                {type: "decision", ru: "Не помогать мистеру Керману собирать компромат на TerraGroup", en: "Refuse to help Mr. Kerman gather dirt on TerraGroup"},
+                {type: "achievement", ru: "Достижение «Хватит твоих игр»", en: 'Achievement "Enough of Your Games"'},
+                {type: "step", ru: "Поговорить с Прапором", en: "Talk to Prapor"},
+                {type: "note", ru: "Зависит от того, отдали ли вы Прапору кейс в самом начале — на дальнейшие шаги это не влияет", en: "Depends on whether you gave Prapor the case at the very start — doesn't affect the following steps"},
+                {type: "step", ru: "Передать 40 комплектов ремонта брони/оружия (100% прочности; галочка «найдено в рейде» не нужна)", en: 'Hand over 40 armor/weapon repair kits (100% durability; "found in raid" not required)'},
+                {type: "step", ru: "Передать на выбор любой защищённый контейнер — Гамма, Тета или Эпсилон", en: "Hand over any secure container of your choice — Gamma, Theta, or Epsilon"},
+                {type: "step", ru: "Передать 50 предметов военной электроники", en: "Hand over 50 military electronics items"},
+                {type: "step", ru: "Забрать «Кейс с био-оружием» на Резерве и передать его Прапору", en: 'Retrieve the "Case with a bio-weapon" on Reserve and hand it to Prapor'},
+                {type: "achievement", ru: "Достижение «А оно взорвётся?»", en: 'Achievement "Will It Blow Up?"'},
+                {type: "step", ru: "Передать Прапору 1 000 000 $", en: "Hand Prapor $1,000,000"},
+                {type: "step", ru: "Подождать 48 часов и получить от Прапора хеш-флешку", en: "Wait 48 hours and receive a hash flash drive from Prapor"},
+                {type: "step", ru: "Построить Солнечную батарею в убежище", en: "Build the Solar Power station in the Hideout"},
+                {type: "step", ru: "Скрафтить финальную ключ-карту с хеш-кодами Прапора", en: "Craft the final keycard with Prapor's hash codes"},
+                {type: "escape", ru: "Подойти к интеркому портового Терминала с 22:00 до 4:00, провести ключ-картой, убрать оружие в рюкзак, подойти к воротам, активировать переход и перейти на Терминал", en: "Approach the port Terminal intercom between 22:00–4:00, swipe the keycard, holster your weapon, approach the gates, activate the crossing and cross into the Terminal"},
+                {type: "escape", ru: "Сбежать из Таркова. Если попытка провалена — карту нужно крафтить заново (~11 часов каждый раз, нужна чистая RFID-карта)", en: "Escape Tarkov. If the attempt fails, the card must be crafted again (~11h each time, a blank RFID card is required)"},
+                {type: "ending", ru: "Концовка «Падший»", en: 'Ending "Fallen"', icon: "💀"}
+              ],
+              [
+                {type: "decision", ru: "Начать собирать компромат, передать часть Керману, а потом отказаться продолжать", en: "Start gathering dirt, hand part of it to Kerman, then refuse to continue"},
+                {type: "achievement", ru: "Достижение «Поворот не туда»", en: 'Achievement "Wrong Turn"'},
+                {type: "step", ru: "Поговорить со Смотрителем Маяка", en: "Talk to the Lighthouse Keeper"},
+                {type: "step", ru: "Найти материалы топографической разведки для Смотрителя (5 карт, каждая на своей локации)", en: "Find topographic recon materials for the Keeper (5 maps, one per location)"},
+                {type: "note", ru: "Крафт ~3 часа в Разведцентре", en: "Craft ~3h at the Intelligence Center"},
+                {type: "step", ru: "Передать оцифрованные материалы Смотрителю после крафта", en: "Hand the digitized materials to the Keeper after crafting"},
+                {type: "step", ru: "Убить 30 ЧВК на Лесу и передать Смотрителю 100 жетонов ЧВК", en: "Kill 30 PMCs on Woods and hand the Keeper 100 PMC dogtags"},
+                {type: "step", ru: "Найти амулеты сектантов во всех меченых комнатах", en: "Find cultist amulets in all marked rooms"},
+                {type: "step", ru: "Заложить амулеты в меченой комнате на Маяке", en: "Place the amulets in the marked room on Lighthouse"},
+                {type: "step", ru: "Доложить Смотрителю и получить у него ключ-карту от Терминала", en: "Report to the Keeper and receive the Terminal keycard from him"},
+                {type: "escape", ru: "Подойти к интеркому портового Терминала с 22:00 до 4:00, провести ключ-картой, убрать оружие в рюкзак, подойти к воротам, активировать переход и перейти на Терминал", en: "Approach the port Terminal intercom between 22:00–4:00, swipe the keycard, holster your weapon, approach the gates, activate the crossing and cross into the Terminal"},
+                {type: "escape", ru: "Сбежать из Таркова. Если попытка провалена — придётся каждый раз покупать новую карту доступа у Смотрителя в обмен на «синие документы» TerraGroup", en: 'Escape Tarkov. If the attempt fails, you must buy a new access card from the Keeper each time, in exchange for TerraGroup "blue documents"'},
+                {type: "ending", ru: "Концовка «Должник»", en: 'Ending "Debtor"', icon: "🗼"}
+              ]
+            ]}
+          ]
+        ]}
+      ],
+      [
+        {type: "decision", ru: "Передать кейс Прапору", en: "Hand the case to Prapor"},
+        {type: "step", ru: "Найти компромат на Прапора в лагере на Маяке", en: "Find compromising material on Prapor at the camp on Lighthouse"},
+        {type: "step", ru: "Получить доступ к Смотрителю Маяка (Механик выдаёт задание «Сетевой провайдер», часть 1)", en: 'Gain access to the Lighthouse Keeper (Mechanic gives "Network Provider – Part 1")'},
+        {type: "step", ru: "Поговорить со Смотрителем и передать ему 3 папки «синих документов» TerraGroup", en: 'Talk to the Keeper and hand him 3 folders of TerraGroup "blue documents"'},
+        {type: "step", ru: "Запустить жёлтый сигнальный фаер напротив входа в ТЦ «Ультра» на Развязке", en: 'Pop a yellow signal flare across from the "Ultra" mall entrance on Interchange'},
+        {type: "step", ru: "Убить 15 любых целей внутри ТЦ «Ультра» за один рейд и выжить", en: 'Kill 15 any targets inside "Ultra" mall in one raid and survive'},
+        {type: "step", ru: "Доложить Смотрителю и забрать у него кейс", en: "Report to the Keeper and take the case back from him"},
+        {type: "note", ru: "Дальше — как в сценарии «Оставить кейс у себя»: откройте кейс и продолжайте оттуда.", en: 'From here it continues the same as the "Keep the case" path: open the case and continue from there.'}
+      ]
+    ]}
+  ];
+  function buildStoryNodeBox(node){
+    var wrap = document.createElement("div");
+    wrap.className = "story-map-node";
+    var box = document.createElement("div");
+    box.className = "story-map-node-box " + node.type;
+    if(node.type === "ending"){
+      box.innerHTML = '<span>' + (node.icon || "") + '</span><span>' + escHtml(node[langState.lang] || node.ru) + '</span>';
+    } else {
+      var tagHtml = node.tag ? '<span class="story-map-tag">' + escHtml(node.tag) + '</span>' : "";
+      box.innerHTML = tagHtml + escHtml(node[langState.lang] || node.ru);
+    }
+    wrap.appendChild(box);
+    return wrap;
+  }
+  function renderStoryChain(chain, container){
+    chain.forEach(function(node){
+      container.appendChild(buildStoryNodeBox(node));
+      if(node.branches){
+        var branchesWrap = document.createElement("div");
+        branchesWrap.className = "story-map-branches";
+        node.branches.forEach(function(branchChain){
+          var branchEl = document.createElement("div");
+          branchEl.className = "story-map-branch";
+          renderStoryChain(branchChain, branchEl);
+          branchesWrap.appendChild(branchEl);
+        });
+        container.appendChild(branchesWrap);
+      }
+    });
+  }
+  function makeStoryDiagramArrow(){
+    var a = document.createElement("div");
+    a.className = "story-diagram-arrow";
+    return a;
+  }
+  function buildStoryDiagramBox(node){
+    var box = document.createElement("div");
+    box.className = "story-diagram-box " + node.type;
+    if(node.type === "ending"){
+      box.innerHTML = '<div>' + (node.icon || "") + '</div><div>' + escHtml(node[langState.lang] || node.ru) + '</div>';
+    } else {
+      var tagHtml = node.tag ? '<div class="story-diagram-tag">' + escHtml(node.tag) + '</div>' : "";
+      box.innerHTML = tagHtml + escHtml(node[langState.lang] || node.ru);
+    }
+    return box;
+  }
+  function renderStoryDiagramChain(chain){
+    var col = document.createElement("div");
+    col.className = "story-diagram-chain";
+    chain.forEach(function(node, idx){
+      if(idx > 0) col.appendChild(makeStoryDiagramArrow());
+      col.appendChild(buildStoryDiagramBox(node));
+      if(node.branches){
+        col.appendChild(makeStoryDiagramArrow());
+        var fork = document.createElement("div");
+        fork.className = "story-diagram-fork";
+        node.branches.forEach(function(branchChain){
+          var lane = document.createElement("div");
+          lane.className = "story-diagram-lane";
+          lane.appendChild(renderStoryDiagramChain(branchChain));
+          fork.appendChild(lane);
+        });
+        col.appendChild(fork);
+      }
+    });
+    return col;
+  }
+  function renderStoryDiagram(){
+    var diagramEl = document.getElementById("story-map-diagram");
+    diagramEl.innerHTML = "";
+    var wrap = document.createElement("div");
+    wrap.className = "story-diagram-wrap";
+    wrap.appendChild(renderStoryDiagramChain(STORY_MAP_DATA));
+    diagramEl.appendChild(wrap);
+  }
+  function buildStoryTimelineItem(node){
+    var item = document.createElement("div");
+    item.className = "story-timeline-item";
+    var dot = document.createElement("div");
+    dot.className = "story-timeline-dot " + node.type;
+    var card = document.createElement("div");
+    card.className = "story-timeline-card " + node.type;
+    if(node.type === "ending"){
+      card.innerHTML = (node.icon || "") + " " + escHtml(node[langState.lang] || node.ru);
+    } else {
+      var tagHtml = node.tag ? '<span class="story-timeline-tag">' + escHtml(node.tag) + '</span>' : "";
+      card.innerHTML = tagHtml + escHtml(node[langState.lang] || node.ru);
+    }
+    item.appendChild(dot);
+    item.appendChild(card);
+    return item;
+  }
+  function renderStoryTimelineChain(chain, container){
+    var chainEl = document.createElement("div");
+    chainEl.className = "story-timeline-chain";
+    chain.forEach(function(node){
+      chainEl.appendChild(buildStoryTimelineItem(node));
+      if(node.branches){
+        var forksEl = document.createElement("div");
+        forksEl.className = "story-timeline-forks";
+        node.branches.forEach(function(branchChain){
+          var laneEl = document.createElement("div");
+          laneEl.className = "story-timeline-fork-lane";
+          renderStoryTimelineChain(branchChain, laneEl);
+          forksEl.appendChild(laneEl);
+        });
+        chainEl.appendChild(forksEl);
+      }
+    });
+    container.appendChild(chainEl);
+  }
+  function renderStoryTimeline(){
+    var timelineEl = document.getElementById("story-map-timeline");
+    timelineEl.innerHTML = "";
+    renderStoryTimelineChain(STORY_MAP_DATA, timelineEl);
+  }
+  var STORY_MAP_VIEW_IDS = {list: "story-map-tree", diagram: "story-map-diagram", timeline: "story-map-timeline"};
+  function showStoryMapView(view){
+    Object.keys(STORY_MAP_VIEW_IDS).forEach(function(key){
+      document.getElementById(STORY_MAP_VIEW_IDS[key]).style.display = key === view ? "block" : "none";
+    });
+    document.querySelectorAll("#story-map-view-toggle .lang-opt").forEach(function(b){
+      b.classList.toggle("active", b.dataset.view === view);
+    });
+    if(view === "diagram") renderStoryDiagram();
+    if(view === "timeline") renderStoryTimeline();
+  }
+  function renderStoryMap(){
+    var legendEl = document.getElementById("story-map-legend");
+    legendEl.innerHTML = "";
+    STORY_MAP_LEGEND.forEach(function(item){
+      var el = document.createElement("span");
+      el.className = "story-map-legend-item";
+      el.innerHTML = '<span class="story-map-legend-swatch story-map-node-box ' + item.cls + '" style="padding:0;width:12px;height:12px;"></span>' + escHtml(i18n(item.key));
+      legendEl.appendChild(el);
+    });
+    var treeEl = document.getElementById("story-map-tree");
+    treeEl.innerHTML = "";
+    renderStoryChain(STORY_MAP_DATA, treeEl);
+    showStoryMapView("list");
+  }
+  document.querySelectorAll("#story-map-view-toggle .lang-opt").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      if(btn.classList.contains("active")) return;
+      showStoryMapView(btn.dataset.view);
+    });
+  });
+  document.getElementById("story-map-close-btn").addEventListener("click", function(){
+    document.getElementById("story-map-overlay").classList.remove("open");
+  });
+  document.getElementById("story-map-overlay").addEventListener("click", function(e){
+    if(e.target === document.getElementById("story-map-overlay")) e.currentTarget.classList.remove("open");
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && document.getElementById("story-map-overlay").classList.contains("open")){
+      document.getElementById("story-map-overlay").classList.remove("open");
+    }
+  });
 
   // ---- wheel zoom (desktop) ----
   elGalleryImg.addEventListener("wheel", function(e){
