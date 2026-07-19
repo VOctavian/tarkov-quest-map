@@ -645,21 +645,6 @@
     background:var(--panel);border:1px solid var(--border);color:var(--text-dim);
     font-size:10px;padding:1px 6px;border-radius:10px;white-space:nowrap;
   }
-  .active-panel-story-intro{
-    padding:0 4px 8px;font-size:11.5px;color:var(--text-dim);line-height:1.4;
-  }
-  .story-chain-row{
-    display:block;padding:8px 10px;margin-bottom:5px;border-radius:6px;cursor:pointer;
-    background:var(--panel-2);border:1px solid var(--border);border-left:3px solid var(--accent);
-  }
-  .story-chain-row:hover{border-color:var(--accent);}
-  .story-chain-head{display:flex;align-items:baseline;gap:8px;}
-  .story-chain-num{color:var(--accent);font-weight:700;font-size:12px;flex:0 0 auto;}
-  .story-chain-name{font-weight:700;font-size:13px;color:var(--text);}
-  .story-chain-name-alt{color:var(--text-dim);font-weight:400;font-size:11px;}
-  .story-chain-start{margin-top:4px;font-size:11.5px;line-height:1.4;color:var(--text-dim);}
-  .story-chain-start b{color:var(--accent-2);font-weight:600;}
-
   /* ---------- Needed items side panel ---------- */
   #btn-items-panel{
     display:flex;align-items:center;gap:7px;
@@ -1026,31 +1011,6 @@
   #untracked-panel-body{flex:1 1 auto;overflow-y:auto;padding:10px 12px 16px;}
   #untracked-panel-empty{color:var(--text-dim);font-size:13px;padding:10px 4px;}
 
-  #story-panel{
-    position:fixed;right:-400px;top:0;bottom:0;width:400px;max-width:90vw;
-    display:flex;flex-direction:column;background:var(--panel);border-left:1px solid var(--border);
-    transition:right .3s;z-index:205;
-  }
-  #story-panel.open{right:0;}
-  #story-panel-head{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:12px 14px;border-bottom:1px solid var(--border);flex:0 0 auto;
-  }
-  #story-panel-head span{font-size:15px;font-weight:700;color:var(--accent-2);}
-  #story-panel-close{
-    background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:4px 8px;
-  }
-  #story-panel-close:hover{border-color:var(--accent);}
-  #story-panel-body{flex:1 1 auto;overflow-y:auto;padding:10px 12px 16px;}
-  .story-step-card{
-    display:block;margin-bottom:8px;padding:10px;border-radius:6px;background:var(--panel-2);
-    border:1px solid var(--border);border-left:3px solid var(--accent);cursor:pointer;transition:all .2s;
-  }
-  .story-step-card:hover{border-color:var(--accent);background:var(--panel);}
-  .story-step-chapter{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;}
-  .story-step-text{font-size:12.5px;color:var(--text);line-height:1.4;margin-bottom:4px;}
-  .story-step-num{display:inline-block;background:var(--accent);color:#1a1400;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700;}
-
   .untracked-row{
     display:flex;align-items:center;gap:8px;
     padding:7px 8px;font-size:12.5px;color:var(--text);border-radius:5px;margin-bottom:4px;
@@ -1304,7 +1264,6 @@
   <button id="btn-active-panel" data-i18n-title="activePanelBtnTitle" data-i18n="activePanelBtnLabel" title="Список активных заданий">🎯 Активные</button>
   <button id="btn-items-panel" data-i18n-title="itemsPanelBtnTitle" data-i18n="itemsPanelBtnLabel" title="Список нужных предметов">📦 Предметы</button>
   <button id="btn-untracked-panel" data-i18n-title="untrackedPanelBtnTitle" data-i18n="untrackedPanelBtnLabel" title="Список убранных заданий">🚫 Убранные</button>
-  <button id="btn-story-panel" data-i18n-title="storyPanelBtnTitle" data-i18n="storyPanelBtnLabel" title="Сюжетные цепочки">📖 Сюжет</button>
   <button type="button" id="btn-gallery-woods-btr" data-i18n="galleryWoodsBtrLabel" title="Остановки БТР Лес">Остановки БТР Лес</button>
   <button type="button" id="btn-gallery-streets-btr" data-i18n="galleryStreetsBtrLabel" title="Остановки БТР Улицы Таркова">Остановки БТР Улицы Таркова</button>
   <button type="button" id="btn-gallery-story" data-i18n="galleryStoryLabel" title="Карта сюжеток">Карта сюжеток</button>
@@ -1348,14 +1307,6 @@
     <button id="untracked-panel-close" data-i18n="closeLabel">Закрыть ✕</button>
   </div>
   <div id="untracked-panel-body"></div>
-</div>
-
-<div id="story-panel">
-  <div id="story-panel-head">
-    <span data-i18n="storyPanelTitle">Сюжетные цепочки</span>
-    <button id="story-panel-close" data-i18n="closeLabel">Закрыть ✕</button>
-  </div>
-  <div id="story-panel-body"></div>
 </div>
 
 <div id="cultist-overlay">
@@ -1416,7 +1367,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "44";
+  var APP_VERSION = "45";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1525,16 +1476,9 @@
     activePanelTitle: {ru:"Активные задания", en:"Active quests"},
     activePanelByTrader: {ru:"По торговцам", en:"By trader"},
     activePanelByMap: {ru:"По картам", en:"By map"},
-    activePanelByStory: {ru:"Сюжет", en:"Story"},
-    activePanelStoryLabel: {ru:"Сюжет", en:"Storyline"},
-    activePanelStoryIntro: {ru:"Сюжетные цепочки квестов и как запустить каждую из них. Нажмите на строку, чтобы открыть главу на вики.", en:"Storyline quest chains and how to start each one. Click a row to open the chapter on the wiki."},
-    activePanelStoryStartLabel: {ru:"Как начать:", en:"How to start:"},
     activePanelMapCountTitle: {ru:"Только на этой карте + доступны также на других картах", en:"Only on this map + also available on other maps"},
     activePanelNoMap: {ru:"Без привязки к карте", en:"No specific map"},
     activePanelEmpty: {ru:"Нет активных заданий", en:"No active quests"},
-    storyPanelBtnLabel: {ru:"📖 Сюжет", en:"📖 Story"},
-    storyPanelBtnTitle: {ru:"Сюжетные цепочки", en:"Storyline chains"},
-    storyPanelTitle: {ru:"Сюжетные цепочки", en:"Storyline chains"},
     activePanelLevelLabel: {ru:"Мой уровень", en:"My level"},
     activePanelLevelPlaceholder: {ru:"—", en:"—"},
     untrackLabel: {ru:"Не отслеживать", en:"Untrack"},
@@ -4512,91 +4456,6 @@
   var activePanelKappaOnly = false;
   var activePanelLightkeeperOnly = false;
 
-  // Story chapters (questline chains) + how to start each one. Chapter names and
-  // start triggers verified against the EFT fandom wiki (story chapter pages +
-  // langlinks for the RU names). These are world-action / narrative triggers, not
-  // regular trader quests, so each row links to the chapter's wiki page rather than
-  // a map card. Ordered roughly by story progression (Tour is the onboarding arc,
-  // The Ticket is the finale that branches into the 4 endings shown in the Story map).
-  var STORY_CHAPTERS = [
-    {ru:"Тур", en:"Tour", wiki:"Tour", wikiRu:"Тур",
-      startRu:"Добавляется в список заданий автоматически при начале игры.",
-      startEn:"Added to your quest list automatically when you start the game."},
-    {ru:"Небеса в огне", en:"Falling Skies", wiki:"Falling_Skies", wikiRu:"Небеса_в_огне",
-      startRu:"Спросите Механика об упавшем самолёте по ходу главы «Тур».",
-      startEn:"Ask Mechanic about the downed plane while progressing through the Tour chapter."},
-    {ru:"Билет", en:"The Ticket", wiki:"The_Ticket", wikiRu:"Билет",
-      startRu:"Постройте Разведцентр 1 уровня в убежище и поговорите с мистером Керманом. Это финал — ветвится на 4 концовки (см. «Карта сюжеток»).",
-      startEn:"Build Intelligence Center level 1 in the Hideout and talk to Mr. Kerman. This is the finale — it branches into the 4 endings (see the Story map)."},
-    {ru:"Борей", en:"Boreas", wiki:"Boreas", wikiRu:"Борей",
-      startRu:"Вынесите из рейда постер «Paradigm Shipping» (или проверьте сигнал бедствия по радио у Разведцентра 3 ур. в убежище), затем обратитесь к Механику.",
-      startEn:"Extract with a Paradigm Shipping poster (or check the distress signal on the radio at Intelligence Center lvl 3 in the Hideout), then go to Mechanic."},
-    {ru:"Лабиринт", en:"The Labyrinth", wiki:"The_Labyrinth_(story_chapter)", wikiRu:"Лабиринт_(глава_истории)",
-      startRu:"Найдите переход «Лабиринт» на Береге (подвал западного крыла санатория, нужен ключ от объекта Knossos LLC), затем расспросите торговцев об объекте.",
-      startEn:"Find the Labyrinth transit on Shoreline (basement of the health resort's west wing, needs the Knossos LLC facility key), then ask the traders about the facility."},
-    {ru:"Синий Огонь", en:"Blue Fire", wiki:"Blue_Fire", wikiRu:"Синий_Огонь",
-      startRu:"Подберите и прочитайте «Листовку МЧС» или «Записку от Объекта №1156» в одной из локаций.",
-      startEn:"Pick up and read the EMERCOM leaflet or the Note by Item #1156 from one of several locations."},
-    {ru:"Неизвестные", en:"The Unheard", wiki:"The_Unheard", wikiRu:"Неизвестные",
-      startRu:"Подберите и прочитайте «Записку с бредом об Очищении» в одной из локаций.",
-      startEn:"Pick up and read the Note with ramblings about the Purification from one of several locations."},
-    {ru:"Они уже здесь", en:"They Are Already Here", wiki:"They_Are_Already_Here", wikiRu:"Они_уже_здесь",
-      startRu:"Подберите и прочитайте «Записку о Глазе мира» в одной из локаций.",
-      startEn:"Pick up and read the Note about the Eye of the World from one of several locations."},
-    {ru:"Батя", en:"Batya", wiki:"Batya", wikiRu:"Батя",
-      startRu:"Подберите стартовый предмет (нашивка «Богатыри») в одной из локаций: Таможня (матрас на базе Диких), Резерв (радар «Белый ферзь») или Берег (бункер к северу от санатория).",
-      startEn:"Pick up the starter item (Bogatyrs patch) at one of: Customs (Scav base mattress), Reserve (White Queen radar dome) or Shoreline (bunker north of the health resort)."},
-    {ru:"Случайный свидетель", en:"Accidental Witness", wiki:"Accidental_Witness", wikiRu:"Случайный_свидетель",
-      startRu:"Найдите белую исписанную машину во дворе общежитий на Таможне.",
-      startEn:"Locate the white scribbled-on car in the courtyard of the dormitories on Customs."}
-  ];
-
-  var STORY_STEPS = [
-    // Tour
-    {chapter: {ru:"Тур", en:"Tour"}, ru:"Завершить первый рейд", en:"Complete your first raid"},
-    {chapter: {ru:"Тур", en:"Tour"}, ru:"Поговорить с Прапором", en:"Talk to Prapor"},
-    {chapter: {ru:"Тур", en:"Tour"}, ru:"Доставить рюкзак из Таможни", en:"Deliver a backpack from Customs"},
-    {chapter: {ru:"Тур", en:"Tour"}, ru:"Убить Диких на Таможне", en:"Kill Scavs on Customs"},
-    {chapter: {ru:"Небеса в огне", en:"Falling Skies"}, ru:"Спросить Механика об упавшем самолёте", en:"Ask Mechanic about the crashed plane"},
-    {chapter: {ru:"Небеса в огне", en:"Falling Skies"}, ru:"Найти рейдер из лагеря в лесу", en:"Find a raider from the camp in the forest"},
-    {chapter: {ru:"Небеса в огне", en:"Falling Skies"}, ru:"Обыскать обломки самолёта", en:"Search the plane wreckage"},
-    {chapter: {ru:"Небеса в огне", en:"Falling Skies"}, ru:"Вернуть данные Механику", en:"Return the data to Mechanic"},
-    {chapter: {ru:"Борей", en:"Boreas"}, ru:"Вынести постер Paradigm Shipping (или слушать радио)", en:"Extract with Paradigm Shipping poster (or check radio)"},
-    {chapter: {ru:"Борей", en:"Boreas"}, ru:"Поговорить с Механиком о сигнале", en:"Talk to Mechanic about the signal"},
-    {chapter: {ru:"Борей", en:"Boreas"}, ru:"Найти хидравлику на Лесу", en:"Find hydraulic fluid on Woods"},
-    {chapter: {ru:"Борей", en:"Boreas"}, ru:"Достичь комнаты двигателя", en:"Reach the engine room"},
-    {chapter: {ru:"Борей", en:"Boreas"}, ru:"Активировать спасание с помощью хидравлики", en:"Activate the rescue with hydraulics"},
-    {chapter: {ru:"Билет", en:"The Ticket"}, ru:"Построить Разведцентр 1 уровня", en:"Build Intelligence Center level 1"},
-    {chapter: {ru:"Билет", en:"The Ticket"}, ru:"Поговорить с мистером Керманом", en:"Talk to Mr. Kerman"},
-    {chapter: {ru:"Билет", en:"The Ticket"}, ru:"Выбрать путь (помогать или не помогать)", en:"Choose a path (help or refuse)"},
-    {chapter: {ru:"Билет", en:"The Ticket"}, ru:"Собрать компромат на TerraGroup (опционально)", en:"Gather TerraGroup dirt (optional)"},
-    {chapter: {ru:"Билет", en:"The Ticket"}, ru:"Достичь Терминала и сбежать", en:"Reach the Terminal and escape"},
-    {chapter: {ru:"Лабиринт", en:"The Labyrinth"}, ru:"Найти переход на Береге", en:"Find the transit on Shoreline"},
-    {chapter: {ru:"Лабиринт", en:"The Labyrinth"}, ru:"Спросить у торговцев о подземном объекте", en:"Ask traders about the underground facility"},
-    {chapter: {ru:"Лабиринт", en:"The Labyrinth"}, ru:"Дождаться, когда Ежов соберёт ключи", en:"Wait for Jaeger to gather keycards"},
-    {chapter: {ru:"Лабиринт", en:"The Labyrinth"}, ru:"Исследовать подземный комплекс", en:"Explore the underground facility"},
-    {chapter: {ru:"Синий Огонь", en:"Blue Fire"}, ru:"Подобрать листовку МЧС или записку", en:"Pick up EMERCOM leaflet or the note"},
-    {chapter: {ru:"Синий Огонь", en:"Blue Fire"}, ru:"Найти неизвестное устройство", en:"Find the unknown device"},
-    {chapter: {ru:"Синий Огонь", en:"Blue Fire"}, ru:"Исследовать Объект №1156", en:"Investigate Item #1156"},
-    {chapter: {ru:"Неизвестные", en:"The Unheard"}, ru:"Подобрать записку об Очищении", en:"Pick up the Purification note"},
-    {chapter: {ru:"Неизвестные", en:"The Unheard"}, ru:"Найти документы в научном офисе", en:"Find documents in the science office"},
-    {chapter: {ru:"Неизвестные", en:"The Unheard"}, ru:"Выполнить исследования", en:"Complete the research"},
-    {chapter: {ru:"Они уже здесь", en:"They Are Already Here"}, ru:"Подобрать записку о Глазе мира", en:"Pick up the Eye of the World note"},
-    {chapter: {ru:"Они уже здесь", en:"They Are Already Here"}, ru:"Найти амулеты сектантов", en:"Find cultist amulets"},
-    {chapter: {ru:"Они уже здесь", en:"They Are Already Here"}, ru:"Исследовать святилища", en:"Investigate the sanctuaries"},
-    {chapter: {ru:"Батя", en:"Batya"}, ru:"Подобрать нашивку Богатырей", en:"Pick up the Bogatyrs patch"},
-    {chapter: {ru:"Батя", en:"Batya"}, ru:"Найти лагерь Батии", en:"Find Batya's camp"},
-    {chapter: {ru:"Батя", en:"Batya"}, ru:"Сбежать из Таркова (концовка)", en:"Escape Tarkov (ending)"},
-    {chapter: {ru:"Случайный свидетель", en:"Accidental Witness"}, ru:"Найти белую исписанную машину", en:"Find the white scribbled car"},
-    {chapter: {ru:"Случайный свидетель", en:"Accidental Witness"}, ru:"Обыскать её содержимое", en:"Search its contents"},
-    {chapter: {ru:"Случайный свидетель", en:"Accidental Witness"}, ru:"Сбежать из Таркова (концовка)", en:"Escape Tarkov (ending)"}
-  ];
-
-  function storyChapterWikiUrl(ch){
-    return langState.lang === "ru"
-      ? "https://escapefromtarkov.fandom.com/ru/wiki/" + ch.wikiRu
-      : "https://escapefromtarkov.fandom.com/wiki/" + ch.wiki;
-  }
   function activePanelTaskPasses(t){
     if(activePanelKappaOnly && !t.kappaRequired) return false;
     if(activePanelLightkeeperOnly && !t.lightkeeperRequired) return false;
@@ -4656,24 +4515,6 @@
       var soloCount = b.tasks.filter(function(t){ return !t.questMaps || t.questMaps.length <= 1; }).length;
       var sharedCount = b.tasks.length - soloCount;
       return {key: key, label: b.label, tasks: b.tasks, soloCount: soloCount, sharedCount: sharedCount};
-    });
-  }
-
-  function renderStoryPanel(){
-    var body = document.getElementById("story-panel-body");
-    if(!body) return;
-    body.innerHTML = "";
-    STORY_STEPS.forEach(function(step, idx){
-      var card = document.createElement("div");
-      card.className = "story-step-card";
-      card.innerHTML =
-        '<div class="story-step-chapter">' + escHtml(step.chapter[langState.lang]) + '</div>' +
-        '<div><span class="story-step-num">' + (idx + 1) + '</span></div>' +
-        '<div class="story-step-text">' + escHtml(step[langState.lang]) + '</div>';
-      card.addEventListener("click", function(){
-        window.open(storyChapterWikiUrl(STORY_CHAPTERS.find(function(ch){return ch.ru===step.chapter.ru;})), "_blank");
-      });
-      body.appendChild(card);
     });
   }
 
@@ -5182,40 +5023,6 @@
     var lightkeeperBtn = document.getElementById("btn-lightkeeper-filter");
     if(kappaBtn) kappaBtn.textContent = i18n("kappaFilterLabel") + " " + kappaDone + "/" + kappaTotal;
     if(lightkeeperBtn) lightkeeperBtn.textContent = i18n("lightkeeperFilterLabel") + " " + lkDone + "/" + lkTotal;
-  }
-
-  function setupStoryPanel(){
-    var btn = document.getElementById("btn-story-panel");
-    var panel = document.getElementById("story-panel");
-    var closeBtn = document.getElementById("story-panel-close");
-
-    function openPanel(){
-      renderStoryPanel();
-      panel.classList.add("open");
-      btn.classList.add("active");
-      trackEvent("open-story-panel");
-    }
-    function closePanel(){
-      panel.classList.remove("open");
-      btn.classList.remove("active");
-    }
-    btn.addEventListener("click", function(){
-      if(panel.classList.contains("open")) closePanel(); else openPanel();
-    });
-    closeBtn.addEventListener("click", closePanel);
-    document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePanel(); });
-
-    var popupObserverIdx = POPUP_OVERLAY_IDS.indexOf("story-panel-overlay");
-    if(popupObserverIdx === -1){
-      POPUP_OVERLAY_IDS.push("story-panel");
-    }
-  }
-
-  // Call setupStoryPanel during init
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", setupStoryPanel);
-  } else {
-    setupStoryPanel();
   }
 
   // ---------------- Helpers ----------------
