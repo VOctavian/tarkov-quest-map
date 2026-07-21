@@ -1367,7 +1367,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "45";
+  var APP_VERSION = "46";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1755,11 +1755,19 @@
   var elLoading = document.getElementById("loading");
   var elLoadingText = document.getElementById("loading-text");
 
-  // ---------------- Fetch data (with localStorage fallback cache) ----------------
+  // ---------------- Fetch data (with localStorage + bundled-file fallback) ----------------
   function tasksCacheKey(){ return LS_TASKS_CACHE + "_" + langState.lang; }
   function loadTasksCache(){ return loadJSON(tasksCacheKey(), null); }
   function saveTasksCache(data){
     try{ saveJSON(tasksCacheKey(), { savedAt: Date.now(), data: data }); }catch(e){}
+  }
+  // Static snapshot shipped with the site (see scripts/build-tasks-cache.mjs), used
+  // when api.tarkov.dev is unreachable AND the visitor has no localStorage cache from
+  // a prior successful visit (first-time visitor, or cleared storage).
+  function loadStaticTasksCache(){
+    return fetch("tasks-cache-" + langState.lang + ".json", { cache: "no-cache" })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .catch(function(){ return null; });
   }
   function showOfflineBanner(savedAt){
     var banner = document.getElementById("offline-banner");
@@ -1886,7 +1894,14 @@
       applyTasksData(cached.data);
       return;
     }
-    elLoadingText.textContent = i18n("loadFailedPrefix") + err.message + i18n("loadFailedSuffix");
+    loadStaticTasksCache().then(function(bundled){
+      if(bundled && bundled.data){
+        showOfflineBanner(bundled.savedAt);
+        applyTasksData(bundled.data);
+        return;
+      }
+      elLoadingText.textContent = i18n("loadFailedPrefix") + err.message + i18n("loadFailedSuffix");
+    });
   });
 
   // ---------------- Map name highlighting ----------------
