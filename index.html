@@ -638,13 +638,17 @@
     border-left:2px solid transparent;
   }
   .active-quest-row:hover{background:var(--panel-2);border-left-color:var(--accent);color:var(--accent);}
+  .active-quest-row-transit{background:rgba(200,140,40,.14);border-left-color:rgba(200,140,40,.5);}
+  .active-quest-row-transit:hover{background:rgba(200,140,40,.22);border-left-color:#c88c28;}
   .active-quest-trader-icon{width:18px;height:18px;border-radius:50%;flex:0 0 auto;object-fit:cover;margin-top:1px;}
   .active-quest-row-main{display:flex;flex-wrap:wrap;align-items:center;gap:4px;flex:1;min-width:0;}
   .active-quest-name{color:inherit;}
+  .quest-transit-icon{font-size:11px;flex:0 0 auto;}
   .quest-map-tag{
     background:var(--panel);border:1px solid var(--border);color:var(--text-dim);
     font-size:10px;padding:1px 6px;border-radius:10px;white-space:nowrap;
   }
+  .quest-map-tag-done{background:rgba(58,158,90,.18);border-color:#3a9e5a;color:#5fce85;}
   /* ---------- Needed items side panel ---------- */
   #btn-items-panel{
     display:flex;align-items:center;gap:7px;
@@ -1367,7 +1371,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "46";
+  var APP_VERSION = "47";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1477,6 +1481,9 @@
     activePanelByTrader: {ru:"По торговцам", en:"By trader"},
     activePanelByMap: {ru:"По картам", en:"By map"},
     activePanelMapCountTitle: {ru:"Только на этой карте + доступны также на других картах", en:"Only on this map + also available on other maps"},
+    activePanelMapCountTitleTransit: {ru:"Только на этой карте + доступны также на других картах + требуют перехода между картами", en:"Only on this map + also available on other maps + require a transit between maps"},
+    activePanelTraderCountTitleTransit: {ru:"Обычные задания + задания с переходом между картами", en:"Regular quests + quests that require a transit between maps"},
+    activePanelTransitTitle: {ru:"Задание требует перехода между картами", en:"Quest requires a transit between maps"},
     activePanelNoMap: {ru:"Без привязки к карте", en:"No specific map"},
     activePanelEmpty: {ru:"Нет активных заданий", en:"No active quests"},
     activePanelLevelLabel: {ru:"Мой уровень", en:"My level"},
@@ -1703,6 +1710,9 @@
   var LS_TRADER_LEVELS = "tarkov_trader_levels_v1";
 
   var TRADER_ORDER = ["prapor", "therapist", "skier", "peacekeeper", "mechanic", "ragman", "jaeger", "fence", "ref"];
+  // Matches objective text describing an in-raid map transit ("Совершить переход
+  // с Берега на Маяк" / "Complete a transit from Shoreline to Lighthouse").
+  var TRANSIT_OBJECTIVE_RE = /переход|transit/i;
   var CARD_W = 250, GAP_Y = 26, LEVEL_GAP = 34, HEADER_H = 580;
   var MIN_ZOOM = 0.04, MAX_ZOOM = 2.2;
   var ZONE_PAD = 26, ZONE_HEADER_H = 560;
@@ -1858,6 +1868,10 @@
         (o.maps || []).forEach(function(m){ if(m && m.name) mapNames[m.name] = true; });
       });
       t.questMaps = Object.keys(mapNames);
+      // "Переход"/"transit" objectives ask the player to cross between two maps
+      // mid-raid (e.g. Shoreline -> Lighthouse). tarkov.dev doesn't expose this as
+      // a distinct objective type, so it's detected from the objective text itself.
+      t.hasTransit = (t.objectives || []).some(function(o){ return TRANSIT_OBJECTIVE_RE.test(o.description || ""); });
     });
     state.hideoutStations.forEach(function(st){
       (st.levels || []).forEach(function(lvl){
@@ -2589,6 +2603,33 @@
   function nonItemObjectives(t){
     return (t.objectives || []).filter(function(o){ return ITEM_OBJECTIVE_TYPES.indexOf(o.type) === -1 || !o.item; });
   }
+  // Objectives tied to a specific map (o.maps includes it), paired with the same
+  // storage key format buildObjectiveRow()/buildItemRow() use, so completion can be
+  // checked per map for quests whose subtasks span several maps.
+  function taskObjectivesForMap(t, mapName){
+    var entries = [];
+    nonItemObjectives(t).forEach(function(o, idx){
+      if((o.maps || []).some(function(m){ return m && m.name === mapName; })){
+        entries.push({key: t.id + "::obj::" + idx, need: null});
+      }
+    });
+    itemObjectives(t).forEach(function(o, idx){
+      if((o.maps || []).some(function(m){ return m && m.name === mapName; })){
+        entries.push({key: t.id + "::" + idx, need: o.count || 1});
+      }
+    });
+    return entries;
+  }
+  // True only when this map has at least one objective tied to it AND all of
+  // those objectives are marked done — used to grey out that map's completed
+  // leg of a multi-map quest instead of the whole quest at once.
+  function isTaskMapDone(t, mapName){
+    var entries = taskObjectivesForMap(t, mapName);
+    if(!entries.length) return false;
+    return entries.every(function(e){
+      return e.need == null ? !!state.objectiveDone[e.key] : (state.itemHave[e.key] || 0) >= e.need;
+    });
+  }
   // For a "giveItem" objective, find the sibling "findItem" objective for the same
   // item within the same task (e.g. "find in raid X" + "hand over X"), so their
   // have-counters can stay in sync.
@@ -2623,6 +2664,7 @@
       state.objectiveDone[storageKey] = checkbox.checked;
       saveJSON(LS_OBJ_DONE, state.objectiveDone);
       applyObjectiveDoneUI(storageKey, checkbox.checked);
+      refreshActivePanelIfOpen();
     });
     var text = document.createElement("span");
     var label = (obj.description || "") + objectiveCountSuffix(obj);
@@ -2777,6 +2819,7 @@
         applyItemHaveUI(linkedFindKey, newVal);
       }
       saveJSON(LS_ITEMS, state.itemHave);
+      refreshActivePanelIfOpen();
     }
     minusBtn.addEventListener("click", function(){ commit((parseInt(input.value,10)||0) - 1); });
     plusBtn.addEventListener("click", function(){ commit((parseInt(input.value,10)||0) + 1); });
@@ -4497,7 +4540,9 @@
     return order.map(function(key){
       var b = traderMap[key];
       b.tasks.sort(function(x, y){ return x.name.localeCompare(y.name); });
-      return {key: key, label: b.label, tasks: b.tasks};
+      var transitCount = b.tasks.filter(function(t){ return t.hasTransit; }).length;
+      var plainCount = b.tasks.length - transitCount;
+      return {key: key, label: b.label, tasks: b.tasks, plainCount: plainCount, transitCount: transitCount};
     });
   }
 
@@ -4511,6 +4556,7 @@
     state.tasks.forEach(function(t){
       var maps = (t.questMaps && t.questMaps.length) ? t.questMaps : ["__none__"];
       maps.forEach(function(mapName){
+        if(mapName !== "__none__" && isTaskMapDone(t, mapName)) return; // that map's leg is already done
         var key = mapName === "__none__" ? "__none__" : mapName;
         var label = mapName === "__none__" ? i18n("activePanelNoMap") : mapName;
         var bucket = ensure(key, label);
@@ -4528,8 +4574,12 @@
       var b = mapBucket[key];
       b.tasks.sort(function(x, y){ return x.name.localeCompare(y.name); });
       var soloCount = b.tasks.filter(function(t){ return !t.questMaps || t.questMaps.length <= 1; }).length;
-      var sharedCount = b.tasks.length - soloCount;
-      return {key: key, label: b.label, tasks: b.tasks, soloCount: soloCount, sharedCount: sharedCount};
+      // Transit quests are inherently multi-map (the transit's destination map
+      // shows up as an extra entry in questMaps), so they're carved out of the
+      // "shared" bucket rather than counted on top of it.
+      var transitCount = b.tasks.filter(function(t){ return t.questMaps && t.questMaps.length > 1 && t.hasTransit; }).length;
+      var sharedCount = b.tasks.length - soloCount - transitCount;
+      return {key: key, label: b.label, tasks: b.tasks, soloCount: soloCount, sharedCount: sharedCount, transitCount: transitCount};
     });
   }
 
@@ -4550,9 +4600,20 @@
       var groupEl = document.createElement("div");
       groupEl.className = "active-group" + (activePanelOpenGroups[groupKey] ? " open" : "");
 
-      var isSplitCount = activePanelGroupMode === "map" && g.sharedCount;
-      var countText = isSplitCount ? (g.soloCount + "+" + g.sharedCount) : String(g.tasks.length);
-      var countTitleAttr = isSplitCount ? ' title="' + escAttr(i18n("activePanelMapCountTitle")) + '"' : "";
+      var isMapMode = activePanelGroupMode === "map";
+      var countText, countTitleAttr = "";
+      if(isMapMode && g.transitCount){
+        countText = g.soloCount + "+" + g.sharedCount + "+" + g.transitCount;
+        countTitleAttr = ' title="' + escAttr(i18n("activePanelMapCountTitleTransit")) + '"';
+      } else if(isMapMode && g.sharedCount){
+        countText = g.soloCount + "+" + g.sharedCount;
+        countTitleAttr = ' title="' + escAttr(i18n("activePanelMapCountTitle")) + '"';
+      } else if(!isMapMode && g.transitCount){
+        countText = g.plainCount + "+" + g.transitCount;
+        countTitleAttr = ' title="' + escAttr(i18n("activePanelTraderCountTitleTransit")) + '"';
+      } else {
+        countText = String(g.tasks.length);
+      }
 
       var head = document.createElement("button");
       head.type = "button";
@@ -4568,12 +4629,15 @@
       if(g.tasks.length){
         g.tasks.forEach(function(t){
           var row = document.createElement("div");
-          row.className = "active-quest-row";
+          row.className = "active-quest-row" + (t.hasTransit ? " active-quest-row-transit" : "");
           var maps = (t.questMaps && t.questMaps.length) ? t.questMaps : [i18n("activePanelNoMap")];
-          var mapTagsHtml = maps.map(function(m){ return '<span class="quest-map-tag">' + escHtml(m) + '</span>'; }).join("");
+          var mapTagsHtml = maps.map(function(m){
+            return '<span class="quest-map-tag' + (isTaskMapDone(t, m) ? " quest-map-tag-done" : "") + '">' + escHtml(m) + '</span>';
+          }).join("");
+          var transitIconHtml = t.hasTransit ? '<span class="quest-transit-icon" title="' + escAttr(i18n("activePanelTransitTitle")) + '">🔀</span>' : "";
           row.innerHTML =
             '<img class="active-quest-trader-icon" src="' + escAttr(t.trader.imageLink) + '" alt="" title="' + escAttr(t.trader.name) + '" loading="lazy">' +
-            '<div class="active-quest-row-main"><span class="active-quest-name">' + escHtml(t.name) + '</span>' + mapTagsHtml + '</div>';
+            '<div class="active-quest-row-main">' + transitIconHtml + '<span class="active-quest-name">' + escHtml(t.name) + '</span>' + mapTagsHtml + '</div>';
           row.addEventListener("click", function(){ focusOnTask(t.id); openModal(t); });
           bodyWrap.appendChild(row);
         });
