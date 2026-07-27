@@ -1369,9 +1369,38 @@
 (function(){
   "use strict";
 
+  // ---------------- Layered Escape-to-close stack ----------------
+  // Every overlay/side-panel in this app toggles an "open" class on its own
+  // element. They used to each listen for Escape independently, so a single
+  // press closed every open layer at once. Instead, each one calls
+  // trackWindowOpened(id) when it opens; a single Escape listener below closes
+  // only the most-recently-opened layer that's still open, one press at a time
+  // (e.g. active-quests panel -> quest info -> guide -> gallery closes in that
+  // reverse order). Layers with no extra close side effects don't need to call
+  // registerWindowCloser — the default just removes the "open" class.
+  var windowOpenOrder = [];
+  var windowClosers = {};
+  function trackWindowOpened(id){
+    var i = windowOpenOrder.indexOf(id);
+    if(i !== -1) windowOpenOrder.splice(i, 1);
+    windowOpenOrder.push(id);
+  }
+  function registerWindowCloser(id, closeFn){ windowClosers[id] = closeFn; }
+  document.addEventListener("keydown", function(e){
+    if(e.key !== "Escape") return;
+    for(var i = windowOpenOrder.length - 1; i >= 0; i--){
+      var id = windowOpenOrder[i];
+      var el = document.getElementById(id);
+      if(el && el.classList.contains("open")){
+        (windowClosers[id] || function(){ el.classList.remove("open"); })();
+        return;
+      }
+    }
+  });
+
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "47";
+  var APP_VERSION = "48";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1589,10 +1618,9 @@
     var overlay = document.getElementById("coffee-overlay");
     var openBtn = document.getElementById("btn-coffee");
     var closeBtn = document.getElementById("coffee-close-btn");
-    openBtn.addEventListener("click", function(){ overlay.classList.add("open"); });
+    openBtn.addEventListener("click", function(){ overlay.classList.add("open"); trackWindowOpened("coffee-overlay"); });
     closeBtn.addEventListener("click", function(){ overlay.classList.remove("open"); });
     overlay.addEventListener("click", function(e){ if(e.target === overlay) overlay.classList.remove("open"); });
-    document.addEventListener("keydown", function(e){ if(e.key === "Escape") overlay.classList.remove("open"); });
 
     document.querySelectorAll(".coffee-copy-btn").forEach(function(btn){
       btn.addEventListener("click", function(){
@@ -1637,10 +1665,9 @@
     var submitBtn = document.getElementById("feedback-submit-btn");
     var status = document.getElementById("feedback-status");
 
-    openBtn.addEventListener("click", function(){ overlay.classList.add("open"); });
+    openBtn.addEventListener("click", function(){ overlay.classList.add("open"); trackWindowOpened("feedback-overlay"); });
     closeBtn.addEventListener("click", function(){ overlay.classList.remove("open"); });
     overlay.addEventListener("click", function(e){ if(e.target === overlay) overlay.classList.remove("open"); });
-    document.addEventListener("keydown", function(e){ if(e.key === "Escape") overlay.classList.remove("open"); });
 
     form.addEventListener("submit", function(e){
       e.preventDefault();
@@ -2518,6 +2545,7 @@
     });
     elConfirmList.style.display = items && items.length ? "" : "none";
     elConfirmOverlay.classList.add("open");
+    trackWindowOpened("confirm-overlay");
     return new Promise(function(resolve){
       confirmResolve = resolve;
     });
@@ -2530,12 +2558,10 @@
       resolve(result);
     }
   }
+  registerWindowCloser("confirm-overlay", function(){ closeConfirmDialog(false); });
   elConfirmOkBtn.addEventListener("click", function(){ closeConfirmDialog(true); });
   elConfirmCancelBtn.addEventListener("click", function(){ closeConfirmDialog(false); });
   elConfirmOverlay.addEventListener("click", function(e){ if(e.target === elConfirmOverlay) closeConfirmDialog(false); });
-  document.addEventListener("keydown", function(e){
-    if(e.key === "Escape" && elConfirmOverlay.classList.contains("open")) closeConfirmDialog(false);
-  });
 
   function finalizeCompletion(taskId, t, newValue){
     state.completed[taskId] = newValue;
@@ -3056,6 +3082,7 @@
     fillEar(elModalEarLeft, t.startRewards);
     fillEar(elModalEarRight, t.finishRewards);
     elOverlay.classList.add("open");
+    trackWindowOpened("modal-overlay");
 
     loadGuides().then(function(guides){
       if(!elOverlay.classList.contains("open")) return;
@@ -3099,8 +3126,8 @@
     setTimeout(function(){ card.classList.remove("self-hl"); }, 1600);
   }
   function closeModal(){ elOverlay.classList.remove("open"); }
+  registerWindowCloser("modal-overlay", closeModal);
   elOverlay.addEventListener("click", function(e){ if(e.target === elOverlay) closeModal(); });
-  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeModal(); });
 
   // ---------------- Guide popup + image gallery ----------------
   var elGuideOverlay = document.getElementById("guide-overlay");
@@ -3257,6 +3284,7 @@
     elGuideImages.innerHTML = "";
     elGuideText.textContent = i18n("guideLoadingLabel");
     elGuideOverlay.classList.add("open");
+    trackWindowOpened("guide-overlay");
     loadGuides().then(function(guides){
       guidesData = guides;
       var g = guides[taskId];
@@ -3332,8 +3360,10 @@
     galleryState.idx = idx;
     showGalleryImage();
     elGalleryOverlay.classList.add("open");
+    trackWindowOpened("gallery-overlay");
   }
   function closeGallery(){ elGalleryOverlay.classList.remove("open"); }
+  registerWindowCloser("gallery-overlay", closeGallery);
   function galleryStep(delta){
     if(!galleryState.images.length) return;
     galleryState.idx = (galleryState.idx + delta + galleryState.images.length) % galleryState.images.length;
@@ -3345,8 +3375,7 @@
   elGalleryOverlay.addEventListener("click", function(e){ if(e.target === elGalleryOverlay) closeGallery(); });
   document.addEventListener("keydown", function(e){
     if(!elGalleryOverlay.classList.contains("open")) return;
-    if(e.key === "Escape") closeGallery();
-    else if(e.key === "ArrowLeft" && zoom.scale === 1) galleryStep(-1);
+    if(e.key === "ArrowLeft" && zoom.scale === 1) galleryStep(-1);
     else if(e.key === "ArrowRight" && zoom.scale === 1) galleryStep(1);
   });
 
@@ -3368,6 +3397,7 @@
     closeGallery();
     renderStoryMap();
     document.getElementById("story-map-overlay").classList.add("open");
+    trackWindowOpened("story-map-overlay");
     trackEvent("open-story-map");
   });
 
@@ -3475,6 +3505,7 @@
     if(elCultistSearch) elCultistSearch.value = "";
     elCultistList.textContent = i18n("cultistRecipesLoading");
     elCultistOverlay.classList.add("open");
+    trackWindowOpened("cultist-overlay");
     trackEvent("open-cultist-recipes");
     loadCultistRecipes().then(function(recipes){
       if(!elCultistOverlay.classList.contains("open")) return;
@@ -3486,9 +3517,6 @@
   });
   elCultistOverlay.addEventListener("click", function(e){
     if(e.target === elCultistOverlay) elCultistOverlay.classList.remove("open");
-  });
-  document.addEventListener("keydown", function(e){
-    if(e.key === "Escape" && elCultistOverlay.classList.contains("open")) elCultistOverlay.classList.remove("open");
   });
 
   // ---------------- Hideout station recipes popup ----------------
@@ -3706,6 +3734,7 @@
     if(elHideoutRecipesSearchOut) elHideoutRecipesSearchOut.value = "";
     renderHideoutRecipesList();
     elHideoutRecipesOverlay.classList.add("open");
+    trackWindowOpened("hideout-recipes-overlay");
     trackEvent("open-hideout-recipes");
   });
   if(elHideoutRecipesSearchIn){
@@ -3746,9 +3775,6 @@
   });
   elHideoutRecipesOverlay.addEventListener("click", function(e){
     if(e.target === elHideoutRecipesOverlay) elHideoutRecipesOverlay.classList.remove("open");
-  });
-  document.addEventListener("keydown", function(e){
-    if(e.key === "Escape" && elHideoutRecipesOverlay.classList.contains("open")) elHideoutRecipesOverlay.classList.remove("open");
   });
 
   // ---- shrink left-side buttons to icon-only pills on mobile while any popup is open,
@@ -4047,11 +4073,6 @@
   });
   document.getElementById("story-map-overlay").addEventListener("click", function(e){
     if(e.target === document.getElementById("story-map-overlay")) e.currentTarget.classList.remove("open");
-  });
-  document.addEventListener("keydown", function(e){
-    if(e.key === "Escape" && document.getElementById("story-map-overlay").classList.contains("open")){
-      document.getElementById("story-map-overlay").classList.remove("open");
-    }
   });
 
   // ---- wheel zoom (desktop) ----
@@ -4670,17 +4691,18 @@
       renderActivePanel();
       panel.classList.add("open");
       btn.classList.add("active");
+      trackWindowOpened("active-panel");
       trackEvent("open-active-panel");
     }
     function closePanel(){
       panel.classList.remove("open");
       btn.classList.remove("active");
     }
+    registerWindowCloser("active-panel", closePanel);
     btn.addEventListener("click", function(){
       if(panel.classList.contains("open")) closePanel(); else openPanel();
     });
     closeBtn.addEventListener("click", closePanel);
-    document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePanel(); });
 
     document.querySelectorAll("#active-panel-group-toggle .lang-opt").forEach(function(el){
       el.addEventListener("click", function(){
@@ -4788,17 +4810,18 @@
       renderUntrackedPanel();
       panel.classList.add("open");
       btn.classList.add("active");
+      trackWindowOpened("untracked-panel");
       trackEvent("open-untracked-panel");
     }
     function closePanel(){
       panel.classList.remove("open");
       btn.classList.remove("active");
     }
+    registerWindowCloser("untracked-panel", closePanel);
     btn.addEventListener("click", function(){
       if(panel.classList.contains("open")) closePanel(); else openPanel();
     });
     closeBtn.addEventListener("click", closePanel);
-    document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePanel(); });
   }
 
   // ---------------- Needed items side panel ----------------
@@ -5063,17 +5086,18 @@
       renderTraderLevelsRow();
       panel.classList.add("open");
       btn.classList.add("active");
+      trackWindowOpened("items-panel");
       trackEvent("open-items-panel");
     }
     function closePanel(){
       panel.classList.remove("open");
       btn.classList.remove("active");
     }
+    registerWindowCloser("items-panel", closePanel);
     btn.addEventListener("click", function(){
       if(panel.classList.contains("open")) closePanel(); else openPanel();
     });
     closeBtn.addEventListener("click", closePanel);
-    document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePanel(); });
 
     traderLevelsToggle.addEventListener("click", function(){
       traderLevelsRow.classList.toggle("open");
