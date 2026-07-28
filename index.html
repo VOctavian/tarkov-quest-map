@@ -1033,6 +1033,7 @@
     flex-direction:column;gap:10px;background:var(--bg);z-index:200;color:var(--text-dim);font-size:14px;
   }
   #loading.hidden{display:none;}
+  #loading-lang-toggle{margin-top:6px;}
   .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
 
@@ -1094,10 +1095,17 @@
 </head>
 <body>
 
-<div id="loading"><div class="spinner"></div><div id="loading-text" data-i18n="loadingText">Загрузка данных с tarkov.dev…</div></div>
+<div id="loading">
+  <div class="spinner"></div>
+  <div id="loading-text" data-i18n="loadingText">Загрузка данных с tarkov.dev…</div>
+  <div id="loading-lang-toggle" class="lang-switch lang-toggle-group" data-i18n-title="langToggleTitle" title="Switch language">
+    <button type="button" class="lang-opt" data-lang="ru">RU</button>
+    <button type="button" class="lang-opt" data-lang="en">EN</button>
+  </div>
+</div>
 
 <div id="topbar">
-  <div id="lang-toggle" class="lang-switch" data-i18n-title="langToggleTitle" title="Switch language">
+  <div id="lang-toggle" class="lang-switch lang-toggle-group" data-i18n-title="langToggleTitle" title="Switch language">
     <button type="button" class="lang-opt" data-lang="ru">RU</button>
     <button type="button" class="lang-opt" data-lang="en">EN</button>
   </div>
@@ -1400,7 +1408,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "49";
+  var APP_VERSION = "50";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -1598,12 +1606,12 @@
     document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent = i18n(el.dataset.i18n); });
     document.querySelectorAll("[data-i18n-placeholder]").forEach(function(el){ el.placeholder = i18n(el.dataset.i18nPlaceholder); });
     document.querySelectorAll("[data-i18n-title]").forEach(function(el){ el.title = i18n(el.dataset.i18nTitle); });
-    document.querySelectorAll("#lang-toggle .lang-opt").forEach(function(el){
+    document.querySelectorAll(".lang-toggle-group .lang-opt").forEach(function(el){
       el.classList.toggle("active", el.dataset.lang === langState.lang);
     });
   }
   applyStaticI18n();
-  document.querySelectorAll("#lang-toggle .lang-opt").forEach(function(el){
+  document.querySelectorAll(".lang-toggle-group .lang-opt").forEach(function(el){
     el.addEventListener("click", function(){
       if(el.dataset.lang === langState.lang) return;
       langState.lang = el.dataset.lang;
