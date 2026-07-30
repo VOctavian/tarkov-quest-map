@@ -94,6 +94,8 @@ function extractGuide(html){
     .split("\n")
     .map(function(s){ return decodeHtmlEntities(s).trim(); })
     .filter(function(s){ return s && s !== "•"; })
+    // an image's caption sometimes repeats as a separate text node right next to it
+    .filter(function(s, i, arr){ return i === 0 || s !== arr[i - 1]; })
     .join("\n");
 
   if(!text && !images.length) return null;

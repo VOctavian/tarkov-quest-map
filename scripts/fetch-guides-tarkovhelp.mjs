@@ -120,6 +120,10 @@ function extractGuideFromHtml(html){
   }
 
   var text = html
+    // Each "bb-image" caption block repeats its own caption text a second time inside
+    // a "js-inner" hover tooltip (hidden on the live site via CSS, but plain text to
+    // us) - drop that duplicate before it ends up doubled in the extracted text.
+    .replace(/<div class="js-inner">[\s\S]*?<\/div>/g, "")
     .replace(/<div class="bb-item-wrapper[\s\S]*?<\/div>\s*<\/div>/g, function(block){
       var name = (block.match(/class="item-name"[^>]*>\s*([^<]+)/) || [])[1];
       return name ? decodeHtmlEntities(name.trim()) : "";
@@ -141,6 +145,9 @@ function extractGuideFromHtml(html){
     .split("\n")
     .map(function(s){ return decodeHtmlEntities(s).trim(); })
     .filter(function(s){ return s && s !== "•"; })
+    // Collapse any still-adjacent duplicate lines (e.g. an image's alt text repeating
+    // its own caption line right below it).
+    .filter(function(s, i, arr){ return i === 0 || s !== arr[i - 1]; })
     .join("\n");
 
   if(!text && !images.length) return null;
