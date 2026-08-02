@@ -18,6 +18,7 @@
     --card-w:250px;
     --topbar-h:56px;
     --traderbar-h:40px;
+    --left-panel-shift:0px;
   }
   *{box-sizing:border-box;}
   html,body{
@@ -114,9 +115,10 @@
 
   /* ---------- Viewport / world ---------- */
   #viewport{
-    position:absolute;top:calc(var(--topbar-h) + var(--traderbar-h));left:0;right:0;bottom:0;
+    position:absolute;top:calc(var(--topbar-h) + var(--traderbar-h));left:var(--left-panel-shift);right:0;bottom:0;
     overflow:hidden;cursor:grab;touch-action:none;background:
       radial-gradient(circle at 1px 1px, #23292544 1px, transparent 0) 0 0/28px 28px;
+    transition:left .2s ease;
   }
   #viewport.dragging{cursor:grabbing;}
   /* While actively panning, cards sliding under the stationary cursor would fire a
@@ -572,8 +574,10 @@
 
   /* ---------- Left-side floating button column ---------- */
   #left-buttons-col{
-    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 10px);left:14px;z-index:210;
+    position:fixed;top:calc(var(--topbar-h) + var(--traderbar-h) + 10px);
+    left:calc(14px + var(--left-panel-shift));z-index:210;
     display:flex;flex-direction:column;align-items:flex-start;gap:10px;
+    transition:left .2s ease;
   }
   /* Shrunk to icon-only pills on mobile while a popup is open, so they never overlap it. */
   #left-buttons-col.mini > button{padding:8px 10px;font-size:0;gap:0;max-width:none;}
@@ -597,7 +601,7 @@
   #btn-active-panel.active{background:var(--accent);color:#1a1400;border-color:var(--accent);}
 
   #active-panel{
-    position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:230;
+    position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:45;
     background:var(--panel);border-right:1px solid var(--border);
     display:flex;flex-direction:column;
     transform:translateX(-100%);transition:transform .2s ease;
@@ -661,7 +665,7 @@
   #btn-items-panel.active{background:var(--accent-2);color:#0e1210;border-color:var(--accent-2);}
 
   #items-panel{
-    position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:230;
+    position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:45;
     background:var(--panel);border-right:1px solid var(--border);
     display:flex;flex-direction:column;
     transform:translateX(-100%);transition:transform .2s ease;
@@ -995,7 +999,7 @@
   .story-timeline-fork-lane{border:1px dashed var(--border);border-radius:8px;padding:10px 12px 2px;}
 
   #untracked-panel{
-    position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:230;
+    position:fixed;top:0;bottom:0;left:0;width:340px;max-width:88vw;z-index:45;
     background:var(--panel);border-right:1px solid var(--border);
     display:flex;flex-direction:column;
     transform:translateX(-100%);transition:transform .2s ease;
@@ -1408,7 +1412,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "52";
+  var APP_VERSION = "53";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
@@ -3806,6 +3810,21 @@
     if(el) popupOverlayObserver.observe(el, { attributes: true, attributeFilter: ["class"] });
   });
   window.addEventListener("resize", updateLeftButtonsMiniState);
+
+  // ---- push the quest board (and left button column) aside instead of letting an
+  // open left-side panel (Active/Items/Untracked) overlay it ----
+  var LEFT_PANEL_IDS = ["active-panel", "items-panel", "untracked-panel"];
+  function updateLeftPanelShift(){
+    var openPanel = LEFT_PANEL_IDS.map(function(id){ return document.getElementById(id); })
+      .find(function(el){ return el && el.classList.contains("open"); });
+    document.documentElement.style.setProperty("--left-panel-shift", openPanel ? openPanel.offsetWidth + "px" : "0px");
+  }
+  var leftPanelShiftObserver = new MutationObserver(updateLeftPanelShift);
+  LEFT_PANEL_IDS.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) leftPanelShiftObserver.observe(el, { attributes: true, attributeFilter: ["class"] });
+  });
+  window.addEventListener("resize", updateLeftPanelShift);
 
   // ---------------- Story map (key decisions) popup ----------------
   // Manually transcribed from story.webp (a community-made flowchart by
