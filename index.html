@@ -45,7 +45,7 @@
   #search-dropdown{
     position:absolute;top:calc(100% + 4px);left:0;min-width:280px;max-width:380px;
     max-height:320px;overflow-y:auto;background:var(--panel);border:1px solid var(--border);
-    border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:60;display:none;
+    border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:215;display:none;
   }
   #search-dropdown.open{display:block;}
   #search-dropdown .sd-item{
@@ -1096,6 +1096,7 @@
 </style>
 <script data-goatcounter="https://mastermd.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="e96e9480-83ae-4d26-b75e-2b84b42180a9"></script>
 </head>
 <body>
 
@@ -1412,7 +1413,7 @@
 
   // ---------------- App version indicator (bottom-left corner) ----------------
   // See CLAUDE.md in this repo for the versioning workflow this number follows.
-  var APP_VERSION = "54";
+  var APP_VERSION = "55";
   var elAppVersion = document.getElementById("app-version");
   if(elAppVersion) elAppVersion.textContent = "v" + APP_VERSION;
 
